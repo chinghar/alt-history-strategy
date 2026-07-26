@@ -10,7 +10,7 @@ import { queueEspionageMission as applyQueueEspionageMission } from '../engine/e
 import { setBillStance as applySetBillStance } from '../engine/legislature/legislatureEngine';
 import { scenarios, DEFAULT_SCENARIO_ID } from '../data/scenarios';
 
-export type MapOverlay = 'political' | 'gdp' | 'ideology' | 'population' | 'military';
+export type MapOverlay = 'political' | 'gdp' | 'ideology' | 'population' | 'military' | 'provinces';
 
 const TREATY_PHRASE: Record<TreatyType, string> = {
   alliance: 'an alliance',

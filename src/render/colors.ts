@@ -1,4 +1,4 @@
-import type { Ideology } from '../engine/core/types';
+import type { Ideology, PrimaryIndustry } from '../engine/core/types';
 
 // Validated categorical palette (see dataviz skill: references/palette.md),
 // dark-surface steps — this UI is dark-themed throughout.
@@ -84,6 +84,17 @@ const IDEOLOGY_COLOR: Record<Ideology, string> = {
 
 export function ideologyColor(ideology: Ideology): string {
   return IDEOLOGY_COLOR[ideology];
+}
+
+const INDUSTRY_COLOR: Record<PrimaryIndustry, string> = {
+  industrial: CATEGORICAL[0],
+  trade: CATEGORICAL[1],
+  agrarian: CATEGORICAL[2],
+  slave_agrarian: CATEGORICAL[7],
+};
+
+export function industryColor(industry: PrimaryIndustry): string {
+  return INDUSTRY_COLOR[industry];
 }
 
 export { NEUTRAL_LAND, NEUTRAL_BORDER };

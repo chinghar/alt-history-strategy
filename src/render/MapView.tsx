@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import { countryFeatures, mapDimensions, type CountryFeature } from './worldGeo';
+import { usProvinceFeatures, type StateFeature } from './provinceGeo';
 import {
   gdpColor,
   ideologyColor,
+  industryColor,
   militaryColor,
   politicalColor,
   populationColor,
@@ -29,6 +31,7 @@ export function MapView() {
   const selectedCountryId = useGameStore((s) => s.selectedCountryId);
   const selectCountry = useGameStore((s) => s.selectCountry);
   const [hoveredId, setHoveredId] = useState<CountryId | null>(null);
+  const [hoveredState, setHoveredState] = useState<StateFeature | null>(null);
 
   const countryIndex = useMemo(() => {
     const map = new Map<CountryId, number>();
@@ -56,6 +59,13 @@ export function MapView() {
     [world],
   );
 
+  // Only draw the province-level inset when its provinces actually exist in
+  // the active world — 1836's USA has USA-NE/MA/US/DS, but 2150's or 431
+  // BCE's don't (2150's USA has entirely different provinces, 431 BCE has
+  // no USA at all), so this overlay silently has nothing to add there.
+  const showProvinceInset =
+    overlay === 'provinces' && usProvinceFeatures.some((f) => f.provinceId && f.provinceId in world.provinces);
+
   function fillFor(countryId: CountryId | null): string {
     if (!countryId) return NEUTRAL_LAND;
     const country = world.countries[countryId];
@@ -72,6 +82,7 @@ export function MapView() {
   }
 
   const hovered = hoveredId ? world.countries[hoveredId] : null;
+  const hoveredProvince = hoveredState?.provinceId ? world.provinces[hoveredState.provinceId] : null;
 
   return (
     <div className="relative w-full h-full bg-[#12141a] rounded-lg overflow-hidden">
@@ -100,21 +111,58 @@ export function MapView() {
             />
           );
         })}
+        {showProvinceInset &&
+          usProvinceFeatures.map((state, i) => {
+            const province = state.provinceId ? world.provinces[state.provinceId] : null;
+            if (!province) return null;
+            const isHovered = hoveredState?.name === state.name;
+            return (
+              <path
+                key={`state-${state.name}-${i}`}
+                d={state.path}
+                fill={industryColor(province.primaryIndustry)}
+                stroke="#0b0c10"
+                strokeWidth={0.5}
+                opacity={isHovered ? 0.85 : 1}
+                className="cursor-pointer transition-opacity"
+                onMouseEnter={() => setHoveredState(state)}
+                onMouseLeave={() => setHoveredState(null)}
+                onClick={() => selectCountry('USA')}
+              />
+            );
+          })}
       </svg>
-      {hovered && (
+      {hoveredState && hoveredProvince ? (
         <div className="pointer-events-none absolute left-3 bottom-3 rounded-md bg-black/80 px-3 py-2 text-sm text-gray-100 shadow-lg">
-          <div className="font-semibold">{hovered.name}</div>
+          <div className="font-semibold">{hoveredState.name}</div>
           <div className="text-gray-400">
-            GDP {Math.round(hovered.gdp)} · Population{' '}
-            {totalPopulation(world, hoveredId!).toFixed(1)}M · Military {Math.round(hovered.militaryStrength)}
+            {hoveredProvince.name} · <span className="capitalize">{hoveredProvince.primaryIndustry.replace('_', ' ')}</span> ·
+            Output {Math.round(hoveredProvince.economicOutput)}
           </div>
         </div>
+      ) : (
+        hovered && (
+          <div className="pointer-events-none absolute left-3 bottom-3 rounded-md bg-black/80 px-3 py-2 text-sm text-gray-100 shadow-lg">
+            <div className="font-semibold">{hovered.name}</div>
+            <div className="text-gray-400">
+              GDP {Math.round(hovered.gdp)} · Population{' '}
+              {totalPopulation(world, hoveredId!).toFixed(1)}M · Military {Math.round(hovered.militaryStrength)}
+            </div>
+          </div>
+        )
       )}
       {!hasMappedCountries && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="bg-black/80 rounded-md px-4 py-3 text-sm text-gray-300 max-w-xs text-center">
             Modern map geometry doesn't cover this era's borders yet — use the Nations list to
             inspect and select countries.
+          </div>
+        </div>
+      )}
+      {overlay === 'provinces' && !showProvinceInset && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="bg-black/80 rounded-md px-4 py-3 text-sm text-gray-300 max-w-xs text-center">
+            No province-level geometry for this era yet — currently available for the USA in 1836.
           </div>
         </div>
       )}

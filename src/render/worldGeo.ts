@@ -72,8 +72,11 @@ for (const [id, name] of Object.entries(COUNTRY_GEO_NAME)) {
   else geoNameToCountryIds.set(name, [id]);
 }
 
-const projection = geoNaturalEarth1().fitSize([980, 500], worldFeatures);
-const pathGenerator = geoPath(projection);
+// Exported so provinceGeo.ts can reuse the identical projection — sub-national
+// polygons need to be generated with the exact same projection as the world
+// map they're overlaid on, or they won't align.
+export const projection = geoNaturalEarth1().fitSize([980, 500], worldFeatures);
+export const pathGenerator = geoPath(projection);
 
 /** All land features as SVG path data, tagged with every CountryId (across all scenarios) that could render here. */
 export const countryFeatures: CountryFeature[] = worldFeatures.features

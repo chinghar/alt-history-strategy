@@ -10,6 +10,7 @@ const OVERLAYS: { id: MapOverlay; label: string }[] = [
   { id: 'ideology', label: 'Ideology' },
   { id: 'population', label: 'Population' },
   { id: 'military', label: 'Military' },
+  { id: 'provinces', label: 'Provinces' },
 ];
 
 export function TurnControls() {
