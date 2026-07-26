@@ -15,6 +15,7 @@ export function TurnControls() {
   const nextTurn = useGameStore((s) => s.nextTurn);
   const resetScenario = useGameStore((s) => s.resetScenario);
   const openPicker = useGameStore((s) => s.openPicker);
+  const openEncyclopedia = useGameStore((s) => s.openEncyclopedia);
   const overlay = useGameStore((s) => s.overlay);
   const setOverlay = useGameStore((s) => s.setOverlay);
   const playerCountryId = useGameStore((s) => s.playerCountryId);
@@ -47,6 +48,12 @@ export function TurnControls() {
       </div>
 
       <div className="flex items-center gap-2">
+        <button
+          onClick={openEncyclopedia}
+          className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 border border-white/10 rounded-md"
+        >
+          Encyclopedia
+        </button>
         <button
           onClick={openPicker}
           className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 border border-white/10 rounded-md"

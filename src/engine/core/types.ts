@@ -134,6 +134,7 @@ export interface TimelineEntry {
   title: string;
   description: string;
   tags: string[];
+  countryIds: CountryId[];
 }
 
 export interface ProbabilityTrack {

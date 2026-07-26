@@ -6,14 +6,17 @@ import { ProbabilityPanel } from './ui/ProbabilityPanel';
 import { WarPanel } from './ui/WarPanel';
 import { TurnControls } from './ui/TurnControls';
 import { NationPicker } from './ui/NationPicker';
+import { Encyclopedia } from './ui/Encyclopedia';
 import { useGameStore } from './state/gameStore';
 
 function App() {
   const pickerOpen = useGameStore((s) => s.pickerOpen);
+  const encyclopediaOpen = useGameStore((s) => s.encyclopediaOpen);
 
   return (
     <div className="h-full flex flex-col gap-3 p-3 bg-[#0b0c10]">
       {pickerOpen && <NationPicker />}
+      {!pickerOpen && encyclopediaOpen && <Encyclopedia />}
 
       <TurnControls />
 

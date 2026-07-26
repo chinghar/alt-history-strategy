@@ -137,6 +137,7 @@ export function buildWorld(scenario: ScenarioDefinition): WorldState {
         title: `${scenario.name} begins`,
         description: `The simulation starts in ${scenario.startYear} with ${scenario.countries.length} sovereign powers.`,
         tags: ['origin'],
+        countryIds: scenario.countries.map((c) => c.id),
       },
     ],
     probabilities: {},

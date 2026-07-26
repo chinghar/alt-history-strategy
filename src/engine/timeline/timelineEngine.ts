@@ -11,6 +11,7 @@ export function recordTimeline(world: WorldState, turnEvents: GameEvent[]): Worl
       title: event.text,
       description: event.text,
       tags: [event.type],
+      countryIds: event.countryIds,
     }));
 
   if (entries.length === 0) return world;

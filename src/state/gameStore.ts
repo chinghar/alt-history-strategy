@@ -24,6 +24,7 @@ interface GameStore {
   selectedCountryId: CountryId | null;
   overlay: MapOverlay;
   pickerOpen: boolean;
+  encyclopediaOpen: boolean;
   nextTurn: () => void;
   selectCountry: (id: CountryId | null) => void;
   setOverlay: (overlay: MapOverlay) => void;
@@ -38,6 +39,8 @@ interface GameStore {
   resetScenario: () => void;
   openPicker: () => void;
   closePicker: () => void;
+  openEncyclopedia: () => void;
+  closeEncyclopedia: () => void;
 }
 
 const SAVE_KEY_PREFIX = 'alt-history-strategy:save:';
@@ -89,7 +92,15 @@ function withPlayerEvent(
     eventLog: [...world.eventLog, event],
     timeline: [
       ...world.timeline,
-      { id: `tl-${event.id}`, turn: event.turn, year: event.year, title: text, description: text, tags: [type] },
+      {
+        id: `tl-${event.id}`,
+        turn: event.turn,
+        year: event.year,
+        title: text,
+        description: text,
+        tags: [type],
+        countryIds,
+      },
     ],
   };
 }
@@ -102,6 +113,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   selectedCountryId: null,
   overlay: 'political',
   pickerOpen: findPlayerCountryId(initialWorld) === null,
+  encyclopediaOpen: false,
 
   nextTurn: () => {
     const world = advanceTurn(get().world);
@@ -113,6 +125,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setOverlay: (overlay) => set({ overlay }),
   openPicker: () => set({ pickerOpen: true }),
   closePicker: () => set({ pickerOpen: false }),
+  openEncyclopedia: () => set({ encyclopediaOpen: true }),
+  closeEncyclopedia: () => set({ encyclopediaOpen: false }),
 
   setPlayerCountry: (id) => {
     const { world } = get();
