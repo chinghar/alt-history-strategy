@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useGameStore } from '../state/gameStore';
 import { findWarBetween, getCountryRelations, getOtherParty } from '../engine/core/queries';
 import { clamp, type Country, type CountryId, type SpyMission, type TreatyType } from '../engine/core/types';
@@ -208,12 +209,13 @@ function ResearchControls({ playerCountryId }: { playerCountryId: CountryId }) {
 }
 
 function TechnologySummary({ country }: { country: Country }) {
-  if (country.unlockedTechIds.length === 0) return null;
   return (
     <div>
       <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-1">Technology</h3>
       <p className="text-xs text-gray-400">
-        {country.unlockedTechIds.map((id) => TECH_REGISTRY[id]?.name ?? id).join(', ')}
+        {country.unlockedTechIds.length > 0
+          ? country.unlockedTechIds.map((id) => TECH_REGISTRY[id]?.name ?? id).join(', ')
+          : 'No technologies researched yet.'}
       </p>
     </div>
   );
@@ -266,12 +268,14 @@ function LegislatureControls({ playerCountryId }: { playerCountryId: CountryId }
 
 function LegislatureSummary({ country }: { country: Country }) {
   const config = LEGISLATURE_CONFIGS[country.id];
-  if (!config || !country.pendingBillId) return null;
-  const bill = BILL_REGISTRY[country.pendingBillId];
+  if (!config) return null;
+  const bill = country.pendingBillId ? BILL_REGISTRY[country.pendingBillId] : null;
   return (
     <div>
       <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-1 capitalize">{config.name}</h3>
-      <p className="text-xs text-gray-400">Currently debating: {bill.name}</p>
+      <p className="text-xs text-gray-400 capitalize">
+        {bill ? `Currently debating: ${bill.name}` : `${config.name} is not currently in session.`}
+      </p>
     </div>
   );
 }
@@ -304,10 +308,45 @@ function NationList() {
   );
 }
 
+type DashboardTab = 'overview' | 'research' | 'legislature' | 'diplomacy';
+
+function RelationsList({ country }: { country: Country }) {
+  const world = useGameStore((s) => s.world);
+  const relations = getCountryRelations(world, country.id)
+    .map((r) => ({ relation: r, otherId: getOtherParty(r, country.id) }))
+    .sort((a, b) => b.relation.score - a.relation.score);
+
+  return (
+    <div>
+      <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-1">Relations</h3>
+      {relations.length === 0 ? (
+        <p className="text-xs text-gray-600">No notable relations recorded yet.</p>
+      ) : (
+        <div className="space-y-1">
+          {relations.map(({ relation, otherId }) => (
+            <div key={otherId} className="flex justify-between text-xs">
+              <span className="text-gray-400">
+                {world.countries[otherId]?.name ?? otherId}
+                {relation.treaties.length > 0 && (
+                  <span className="text-gray-600"> ({relation.treaties.join(', ')})</span>
+                )}
+              </span>
+              <span className={relation.score >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                {Math.round(relation.score)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CountryDashboard() {
   const world = useGameStore((s) => s.world);
   const selectedCountryId = useGameStore((s) => s.selectedCountryId);
   const playerCountryId = useGameStore((s) => s.playerCountryId);
+  const [tab, setTab] = useState<DashboardTab>('overview');
 
   if (!selectedCountryId) {
     return <NationList />;
@@ -317,10 +356,15 @@ export function CountryDashboard() {
   if (!country) return null;
 
   const isPlayerCountry = selectedCountryId === playerCountryId;
+  const hasLegislature = Boolean(LEGISLATURE_CONFIGS[country.id]);
 
-  const relations = getCountryRelations(world, country.id)
-    .map((r) => ({ relation: r, otherId: getOtherParty(r, country.id) }))
-    .sort((a, b) => b.relation.score - a.relation.score);
+  const tabs: { id: DashboardTab; label: string }[] = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'research', label: 'Research' },
+    ...(hasLegislature ? [{ id: 'legislature' as const, label: 'Legislature' }] : []),
+    { id: 'diplomacy', label: 'Diplomacy' },
+  ];
+  const activeTab = tabs.some((t) => t.id === tab) ? tab : 'overview';
 
   return (
     <div className="rounded-lg bg-[#181a21] p-4 space-y-4">
@@ -339,74 +383,70 @@ export function CountryDashboard() {
         </p>
       </div>
 
-      <div>
-        <StatRow label="GDP" value={Math.round(country.gdp).toLocaleString()} />
-        <StatRow label="GDP Growth" value={`${(country.gdpGrowth * 100).toFixed(1)}%`} />
-        <StatRow label="Debt" value={Math.round(country.debt).toLocaleString()} />
-        {isPlayerCountry ? (
-          <TaxRateControl playerCountryId={country.id} />
-        ) : (
-          <StatRow label="Tax Rate" value={`${Math.round(country.taxRate * 100)}%`} />
-        )}
-        <StatRow label="Unemployment" value={`${country.unemployment.toFixed(1)}%`} />
-        <StatRow label="Public Opinion" value={`${Math.round(country.publicOpinion)}/100`} />
-        <StatRow label="Government Stability" value={`${Math.round(country.government.stability)}/100`} />
-        <StatRow label="Military Strength" value={Math.round(country.militaryStrength).toLocaleString()} />
+      <div className="flex gap-1 bg-black/30 rounded-md p-1 w-fit">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`px-2.5 py-1 text-xs rounded ${
+              activeTab === t.id ? 'bg-[#3987e5] text-white' : 'text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      <div>
-        <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-1">Provinces</h3>
-        <div className="space-y-1">
-          {country.provinceIds.map((pid) => {
-            const p = world.provinces[pid];
-            return (
-              <div key={pid} className="flex justify-between text-xs text-gray-400">
-                <span>
-                  {p.name} <span className="text-gray-600 capitalize">({p.primaryIndustry.replace('_', ' ')})</span>
-                </span>
-                <span className="tabular-nums">{Math.round(p.economicOutput)}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {isPlayerCountry ? (
-        <ResearchControls playerCountryId={country.id} />
-      ) : (
-        <TechnologySummary country={country} />
-      )}
-
-      {isPlayerCountry ? (
-        <LegislatureControls playerCountryId={country.id} />
-      ) : (
-        <LegislatureSummary country={country} />
-      )}
-
-      {isPlayerCountry ? (
-        <DiplomacyControls playerCountryId={country.id} />
-      ) : (
-        relations.length > 0 && (
+      {activeTab === 'overview' && (
+        <>
           <div>
-            <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-1">Relations</h3>
+            <StatRow label="GDP" value={Math.round(country.gdp).toLocaleString()} />
+            <StatRow label="GDP Growth" value={`${(country.gdpGrowth * 100).toFixed(1)}%`} />
+            <StatRow label="Debt" value={Math.round(country.debt).toLocaleString()} />
+            {isPlayerCountry ? (
+              <TaxRateControl playerCountryId={country.id} />
+            ) : (
+              <StatRow label="Tax Rate" value={`${Math.round(country.taxRate * 100)}%`} />
+            )}
+            <StatRow label="Unemployment" value={`${country.unemployment.toFixed(1)}%`} />
+            <StatRow label="Public Opinion" value={`${Math.round(country.publicOpinion)}/100`} />
+            <StatRow label="Government Stability" value={`${Math.round(country.government.stability)}/100`} />
+            <StatRow label="Military Strength" value={Math.round(country.militaryStrength).toLocaleString()} />
+          </div>
+
+          <div>
+            <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-1">Provinces</h3>
             <div className="space-y-1">
-              {relations.map(({ relation, otherId }) => (
-                <div key={otherId} className="flex justify-between text-xs">
-                  <span className="text-gray-400">
-                    {world.countries[otherId]?.name ?? otherId}
-                    {relation.treaties.length > 0 && (
-                      <span className="text-gray-600"> ({relation.treaties.join(', ')})</span>
-                    )}
-                  </span>
-                  <span className={relation.score >= 0 ? 'text-emerald-400' : 'text-red-400'}>
-                    {Math.round(relation.score)}
-                  </span>
-                </div>
-              ))}
+              {country.provinceIds.map((pid) => {
+                const p = world.provinces[pid];
+                return (
+                  <div key={pid} className="flex justify-between text-xs text-gray-400">
+                    <span>
+                      {p.name}{' '}
+                      <span className="text-gray-600 capitalize">({p.primaryIndustry.replace('_', ' ')})</span>
+                    </span>
+                    <span className="tabular-nums">{Math.round(p.economicOutput)}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        )
+        </>
       )}
+
+      {activeTab === 'research' &&
+        (isPlayerCountry ? <ResearchControls playerCountryId={country.id} /> : <TechnologySummary country={country} />)}
+
+      {activeTab === 'legislature' &&
+        hasLegislature &&
+        (isPlayerCountry ? (
+          <LegislatureControls playerCountryId={country.id} />
+        ) : (
+          <LegislatureSummary country={country} />
+        ))}
+
+      {activeTab === 'diplomacy' &&
+        (isPlayerCountry ? <DiplomacyControls playerCountryId={country.id} /> : <RelationsList country={country} />)}
     </div>
   );
 }
