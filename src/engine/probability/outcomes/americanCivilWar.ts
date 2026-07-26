@@ -14,6 +14,11 @@ export const americanCivilWarTracker: HistoricalOutcomeTracker = {
     const usa = world.countries['USA'];
     if (!usa) return 0;
 
+    // The republic has already fractured into a confederation — the
+    // scenario this tracker watches for has, for all practical purposes,
+    // already happened.
+    if (usa.government.type === 'confederation') return 0.97;
+
     const provinces = usa.provinceIds.map((id) => world.provinces[id]);
     const industrialOutput = provinces
       .filter((p) => p.primaryIndustry === 'industrial')

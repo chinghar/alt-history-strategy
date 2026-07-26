@@ -15,6 +15,12 @@ export const ottomanDeclineTracker: HistoricalOutcomeTracker = {
     const ottoman = world.countries['OTT'];
     if (!ottoman) return 0;
 
+    // Revolution or fracture is the decline this tracker watches for,
+    // already realized.
+    if (ottoman.government.type === 'republic' || ottoman.government.type === 'confederation') {
+      return 0.97;
+    }
+
     const debtRatio = ottoman.gdp > 0 ? clamp(ottoman.debt / ottoman.gdp, 0, 2) / 2 : 0.5;
     const instabilityFactor = (100 - ottoman.government.stability) / 100;
 
