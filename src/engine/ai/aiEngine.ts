@@ -1,10 +1,22 @@
-import { relationKey, type EngineResult, type GameEvent, type Rng, type WorldState, clamp } from '../core/types';
+import {
+  relationKey,
+  clamp,
+  type EngineResult,
+  type GameEvent,
+  type Rng,
+  type SpyMission,
+  type WorldState,
+} from '../core/types';
 import { getCountryRelations, getOtherParty, isAtWar } from '../core/queries';
 import { declareWar } from '../warfare/warfareEngine';
+import { queueEspionageMission } from '../espionage/espionageEngine';
 
 const WAR_RELATION_THRESHOLD = -80;
 const WAR_STRENGTH_RATIO = 1.4;
 const WAR_DECLARATION_CHANCE = 0.04;
+const ESPIONAGE_RELATION_THRESHOLD = -50;
+const ESPIONAGE_CHANCE = 0.03;
+const SPY_MISSIONS: SpyMission[] = ['destabilize', 'sabotage', 'steal_tech'];
 
 /**
  * Rule-based decisions for every AI-controlled country, run once per turn.
@@ -102,5 +114,26 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
     }
   }
 
-  return { world: warWorld, events };
+  // Third pass: espionage against hostile neighbors not already at war —
+  // the lower-intensity option when a rival is too strong (or too distant
+  // a threat) to justify open war.
+  let next = warWorld;
+
+  for (const country of Object.values(world.countries)) {
+    if (country.isPlayerControlled) continue;
+
+    for (const relation of getCountryRelations(world, country.id)) {
+      const otherId = getOtherParty(relation, country.id);
+      if (country.id > otherId && !world.countries[otherId]?.isPlayerControlled) continue;
+      if (relation.treaties.includes('alliance')) continue;
+      if (isAtWar(next, country.id) || isAtWar(next, otherId)) continue;
+
+      if (relation.score < ESPIONAGE_RELATION_THRESHOLD && rng.next() < ESPIONAGE_CHANCE) {
+        const mission = SPY_MISSIONS[rng.int(0, SPY_MISSIONS.length - 1)];
+        next = queueEspionageMission(next, country.id, otherId, mission);
+      }
+    }
+  }
+
+  return { world: next, events };
 }

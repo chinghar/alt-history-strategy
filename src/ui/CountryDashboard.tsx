@@ -1,6 +1,6 @@
 import { useGameStore } from '../state/gameStore';
 import { findWarBetween, getCountryRelations, getOtherParty } from '../engine/core/queries';
-import { clamp, type Country, type CountryId, type TreatyType } from '../engine/core/types';
+import { clamp, type Country, type CountryId, type SpyMission, type TreatyType } from '../engine/core/types';
 import { TECH_REGISTRY } from '../engine/research/techs';
 
 const GOVERNMENT_LABEL: Record<string, string> = {
@@ -19,6 +19,12 @@ const TREATY_LABEL: Record<TreatyType, string> = {
 };
 
 const TREATY_ORDER: TreatyType[] = ['alliance', 'trade_agreement', 'non_aggression', 'sanction'];
+
+const ESPIONAGE_MISSIONS: { id: SpyMission; label: string }[] = [
+  { id: 'destabilize', label: 'Destabilize' },
+  { id: 'sabotage', label: 'Sabotage' },
+  { id: 'steal_tech', label: 'Steal Tech' },
+];
 
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
@@ -62,6 +68,7 @@ function DiplomacyControls({ playerCountryId }: { playerCountryId: CountryId }) 
   const toggleTreaty = useGameStore((s) => s.toggleTreaty);
   const declareWar = useGameStore((s) => s.declareWar);
   const suePeace = useGameStore((s) => s.suePeace);
+  const orderEspionage = useGameStore((s) => s.orderEspionage);
 
   const others = Object.values(world.countries)
     .filter((c) => c.id !== playerCountryId)
@@ -120,6 +127,19 @@ function DiplomacyControls({ playerCountryId }: { playerCountryId: CountryId }) 
                 </button>
               )}
             </div>
+            {!atWar && (
+              <div className="flex gap-1 mt-1 flex-wrap">
+                {ESPIONAGE_MISSIONS.map(({ id, label }) => (
+                  <button
+                    key={id}
+                    onClick={() => orderEspionage(country.id, id)}
+                    className="px-1.5 py-0.5 rounded text-[10px] border border-[#9085e9]/40 text-[#9085e9] hover:bg-[#9085e9]/10"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>

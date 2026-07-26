@@ -1,11 +1,12 @@
 import { create } from 'zustand';
-import type { CountryId, GameEvent, TreatyType, WorldState } from '../engine/core/types';
+import type { CountryId, GameEvent, SpyMission, TreatyType, WorldState } from '../engine/core/types';
 import { buildWorld } from '../engine/core/worldFactory';
 import { advanceTurn } from '../engine/core/turnEngine';
 import { setTaxRate as applyTaxRate } from '../engine/economy/economyEngine';
 import { setTreaty as applyTreaty } from '../engine/diplomacy/diplomacyEngine';
 import { declareWar as applyDeclareWar, suePeace as applySuePeace } from '../engine/warfare/warfareEngine';
 import { setResearchFocus as applySetResearchFocus } from '../engine/research/researchEngine';
+import { queueEspionageMission as applyQueueEspionageMission } from '../engine/espionage/espionageEngine';
 import { scenarios, DEFAULT_SCENARIO_ID } from '../data/scenarios';
 
 export type MapOverlay = 'political' | 'gdp' | 'ideology';
@@ -32,6 +33,7 @@ interface GameStore {
   declareWar: (otherId: CountryId) => void;
   suePeace: () => void;
   setResearchFocus: (techId: string) => void;
+  orderEspionage: (otherId: CountryId, mission: SpyMission) => void;
   loadScenario: (scenarioId: string) => void;
   resetScenario: () => void;
   openPicker: () => void;
@@ -181,6 +183,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { world, playerCountryId } = get();
     if (!playerCountryId) return;
     const nextWorld = applySetResearchFocus(world, playerCountryId, techId);
+    persist(nextWorld);
+    set({ world: nextWorld });
+  },
+
+  orderEspionage: (otherId, mission) => {
+    const { world, playerCountryId } = get();
+    if (!playerCountryId) return;
+    const queued = applyQueueEspionageMission(world, playerCountryId, otherId, mission);
+    if (queued === world) return;
+
+    const text = `${queued.countries[playerCountryId].name} dispatches agents toward ${queued.countries[otherId].name}. The outcome will become clear next turn.`;
+    const nextWorld = withPlayerEvent(queued, text, 'espionage_ordered', [playerCountryId, otherId], 'minor');
     persist(nextWorld);
     set({ world: nextWorld });
   },

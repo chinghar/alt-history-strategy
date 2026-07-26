@@ -88,6 +88,14 @@ export interface TechDef {
   prerequisiteId?: TechId;
 }
 
+export type SpyMission = 'destabilize' | 'sabotage' | 'steal_tech';
+
+export interface EspionageMission {
+  agentId: CountryId;
+  targetId: CountryId;
+  mission: SpyMission;
+}
+
 export interface Relation {
   a: CountryId;
   b: CountryId;
@@ -162,6 +170,7 @@ export interface WorldState {
   provinces: Record<ProvinceId, Province>;
   relations: Record<RelationKey, Relation>;
   wars: Record<WarId, War>;
+  pendingEspionageMissions: EspionageMission[];
   eventLog: GameEvent[];
   timeline: TimelineEntry[];
   probabilities: Record<OutcomeId, ProbabilityTrack>;

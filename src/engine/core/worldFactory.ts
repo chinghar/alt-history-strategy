@@ -127,6 +127,7 @@ export function buildWorld(scenario: ScenarioDefinition): WorldState {
     provinces,
     relations,
     wars: {},
+    pendingEspionageMissions: [],
     eventLog: [],
     timeline: [
       {

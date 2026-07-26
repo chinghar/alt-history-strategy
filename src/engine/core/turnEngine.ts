@@ -7,6 +7,7 @@ import { tick as economyTick } from '../economy/economyEngine';
 import { tick as researchTick } from '../research/researchEngine';
 import { tick as militaryTick } from '../military/militaryEngine';
 import { tick as warfareTick } from '../warfare/warfareEngine';
+import { tick as espionageTick } from '../espionage/espionageEngine';
 import { tick as eventsTick } from '../events/eventEngine';
 import { recomputeAllProbabilities } from '../probability/historicalProbabilityEngine';
 import { recordTimeline } from '../timeline/timelineEngine';
@@ -14,11 +15,11 @@ import { recordTimeline } from '../timeline/timelineEngine';
 const MAX_EVENT_LOG = 300;
 
 /**
- * Advances the world by one turn. Phase order — ai, diplomacy, politics,
- * economy, research, military, warfare, events, probability, timeline — is
- * fixed so that later phases always see the effects of earlier ones within
- * the same turn. Deterministic: identical (world, seed) in always produces
- * an identical WorldState out.
+ * Advances the world by one turn. Phase order — ai, espionage, diplomacy,
+ * politics, economy, research, military, warfare, events, probability,
+ * timeline — is fixed so that later phases always see the effects of
+ * earlier ones within the same turn. Deterministic: identical (world, seed)
+ * in always produces an identical WorldState out.
  */
 export function advanceTurn(world: WorldState): WorldState {
   const turn = world.turn + 1;
@@ -28,7 +29,16 @@ export function advanceTurn(world: WorldState): WorldState {
   const turnEvents: GameEvent[] = [];
   let next = world;
 
-  for (const phase of [aiTick, diplomacyTick, politicsTick, economyTick, researchTick, militaryTick, warfareTick]) {
+  for (const phase of [
+    aiTick,
+    espionageTick,
+    diplomacyTick,
+    politicsTick,
+    economyTick,
+    researchTick,
+    militaryTick,
+    warfareTick,
+  ]) {
     const result = phase(next, rng);
     next = result.world;
     turnEvents.push(...result.events);
