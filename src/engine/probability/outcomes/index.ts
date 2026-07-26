@@ -6,6 +6,7 @@ import { spartanVictoryTracker } from './spartanVictory';
 import { macedonianHegemonyTracker } from './macedonianHegemony';
 import { carthaginianDominanceTracker } from './carthaginianDominance';
 import { opiumWarTracker } from './opiumWar';
+import { romanAscendancyTracker } from './romanAscendancy';
 
 export const defaultOutcomeTrackers: HistoricalOutcomeTracker[] = [
   germanUnificationTracker,
@@ -15,4 +16,5 @@ export const defaultOutcomeTrackers: HistoricalOutcomeTracker[] = [
   macedonianHegemonyTracker,
   carthaginianDominanceTracker,
   opiumWarTracker,
+  romanAscendancyTracker,
 ];

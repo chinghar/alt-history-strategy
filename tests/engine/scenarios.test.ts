@@ -13,10 +13,10 @@ describe('scenario isolation', () => {
     );
   });
 
-  it('431 BCE only carries its own three trackers', () => {
+  it('431 BCE only carries its own four trackers', () => {
     const world = buildWorld(scenario431bce);
     expect(Object.keys(world.probabilities).sort()).toEqual(
-      ['spartan-victory', 'macedonian-hegemony', 'carthaginian-dominance'].sort(),
+      ['spartan-victory', 'macedonian-hegemony', 'carthaginian-dominance', 'roman-ascendancy'].sort(),
     );
   });
 
@@ -32,6 +32,14 @@ describe('scenario isolation', () => {
     const world = buildWorld(scenario1836);
     expect(Object.keys(world.countries)).toHaveLength(22);
     for (const id of ['CHN', 'JPN', 'BRA', 'PER', 'SIC', 'MAR']) {
+      expect(world.countries[id]).toBeDefined();
+    }
+  });
+
+  it('431 BCE has a genuinely global 15-country roster', () => {
+    const world = buildWorld(scenario431bce);
+    expect(Object.keys(world.countries)).toHaveLength(15);
+    for (const id of ['ROM', 'THR', 'KSH', 'MAG', 'CHU']) {
       expect(world.countries[id]).toBeDefined();
     }
   });

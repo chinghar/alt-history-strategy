@@ -1,21 +1,25 @@
 import type { ScenarioDefinition } from '../../engine/core/worldFactory';
 
 /**
- * 431 BCE: the eve of the Peloponnesian War. Ten powers instead of 1836's
- * sixteen — deliberately smaller, since this conflict really was fought
- * within a tight cluster of Greek city-states with a few outside powers
- * (Persia, Carthage) watching from the wings.
+ * 431 BCE: the eve of the Peloponnesian War. Fifteen powers — the core is a
+ * tight cluster of Greek city-states (this conflict really was fought
+ * within that cluster), widened to a genuinely global roster the same way
+ * 1836 was: Rome (Italy, still a middling regional power centuries from
+ * dominance), the Odrysian Kingdom of Thrace, the Kingdom of Kush (Nubia),
+ * Magadha (the Gangetic plain), and the State of Chu (Yangtze China) round
+ * out Europe, Africa, India, and East Asia.
  *
  * Proves the engine isn't 19th-century-specific: the same
  * industry-growth/unrest/stability machinery that drives 1836's North-South
  * divergence here drives Sparta's helot-worked Messenia (slave_agrarian,
  * same tag as the antebellum South) and its perpetual unrest. Chosen so all
- * three trackers have real signal from turn one: the Sparta/Corinth/Thebes
+ * four trackers have real signal from turn one: the Sparta/Corinth/Thebes
  * vs. Athens/Corcyra alliance blocs already seeded (Spartan Victory), seven
  * "greek_polis"-tagged states positioned to exhaust each other while Macedon
- * watches from outside that tag entirely (Macedonian Hegemony), and
- * Carthage already the stronger western Mediterranean economy against
- * Syracuse (Carthaginian Dominance).
+ * watches from outside that tag entirely (Macedonian Hegemony), Carthage
+ * already the stronger western Mediterranean economy against Syracuse
+ * (Carthaginian Dominance), and Rome starting as a real underdog against
+ * both of them (Roman Ascendancy).
  */
 export const scenario431bce: ScenarioDefinition = {
   id: '431bce',
@@ -23,7 +27,7 @@ export const scenario431bce: ScenarioDefinition = {
   era: 'Classical Antiquity',
   startYear: -431,
   seed: 4310431,
-  outcomeTrackerIds: ['spartan-victory', 'macedonian-hegemony', 'carthaginian-dominance'],
+  outcomeTrackerIds: ['spartan-victory', 'macedonian-hegemony', 'carthaginian-dominance', 'roman-ascendancy'],
   techIds: [
     'trireme_design',
     'hoplite_phalanx_reform',
@@ -193,6 +197,84 @@ export const scenario431bce: ScenarioDefinition = {
       tags: ['greek_polis'],
       provinces: [{ id: 'CCY-1', name: 'Corcyra', population: 0.06, economicOutput: 110, primaryIndustry: 'trade', unrest: 14 }],
     },
+    {
+      id: 'ROM',
+      name: 'Roman Republic',
+      government: 'republic',
+      leaderName: 'The Consuls',
+      stability: 50,
+      ideology: 'conservative',
+      taxRate: 0.08,
+      unemployment: 8,
+      publicOpinion: 48,
+      militaryStrength: 45,
+      debt: 5,
+      // Deliberately not 'great_power' — in 431 BCE Rome is still a middling
+      // regional city-state fighting its Latin and Etruscan neighbors,
+      // centuries from Mediterranean dominance.
+      tags: [],
+      provinces: [{ id: 'ROM-1', name: 'Latium', population: 0.3, economicOutput: 90, primaryIndustry: 'agrarian', unrest: 15 }],
+    },
+    {
+      id: 'THR',
+      name: 'Odrysian Thrace',
+      government: 'absolute_monarchy',
+      leaderName: 'King Sitalces',
+      stability: 45,
+      ideology: 'traditionalist',
+      taxRate: 0.09,
+      unemployment: 10,
+      publicOpinion: 46,
+      militaryStrength: 55,
+      debt: 5,
+      tags: [],
+      provinces: [{ id: 'THR-1', name: 'Thrace', population: 0.5, economicOutput: 80, primaryIndustry: 'agrarian', unrest: 18 }],
+    },
+    {
+      id: 'KSH',
+      name: 'Kingdom of Kush',
+      government: 'absolute_monarchy',
+      leaderName: 'The Kushite Crown',
+      stability: 55,
+      ideology: 'traditionalist',
+      taxRate: 0.1,
+      unemployment: 8,
+      publicOpinion: 50,
+      militaryStrength: 30,
+      debt: 3,
+      tags: [],
+      provinces: [{ id: 'KSH-1', name: 'Kush', population: 0.4, economicOutput: 70, primaryIndustry: 'trade', unrest: 12 }],
+    },
+    {
+      id: 'MAG',
+      name: 'Magadha',
+      government: 'absolute_monarchy',
+      leaderName: 'King Udayin',
+      stability: 55,
+      ideology: 'reformist',
+      taxRate: 0.11,
+      unemployment: 9,
+      publicOpinion: 50,
+      militaryStrength: 50,
+      debt: 5,
+      tags: [],
+      provinces: [{ id: 'MAG-1', name: 'Magadha', population: 1.5, economicOutput: 120, primaryIndustry: 'agrarian', unrest: 14 }],
+    },
+    {
+      id: 'CHU',
+      name: 'State of Chu',
+      government: 'absolute_monarchy',
+      leaderName: 'King of Chu',
+      stability: 50,
+      ideology: 'nationalist',
+      taxRate: 0.1,
+      unemployment: 8,
+      publicOpinion: 48,
+      militaryStrength: 65,
+      debt: 5,
+      tags: [],
+      provinces: [{ id: 'CHU-1', name: 'Chu', population: 2, economicOutput: 130, primaryIndustry: 'agrarian', unrest: 15 }],
+    },
   ],
   relations: [
     { a: 'ATH', b: 'SPA', score: -70, treaties: [] },
@@ -207,5 +289,9 @@ export const scenario431bce: ScenarioDefinition = {
     { a: 'CAR', b: 'SYR', score: -50, treaties: [] },
     { a: 'MAC', b: 'ATH', score: 0, treaties: [] },
     { a: 'ARG', b: 'SPA', score: -40, treaties: [] },
+    { a: 'THR', b: 'ATH', score: 40, treaties: ['alliance'] },
+    { a: 'CAR', b: 'ROM', score: 15, treaties: [] },
+    { a: 'KSH', b: 'PER', score: -15, treaties: [] },
+    { a: 'ROM', b: 'SYR', score: 5, treaties: [] },
   ],
 };
