@@ -71,6 +71,39 @@ export interface Country {
   /** Permanent bonuses accumulated from unlocked technologies. */
   techGrowthBonus: number;
   techMilitaryBonus: number;
+  /** Permanent bonus accumulated from passed legislation (see engine/legislature). */
+  policyGrowthBonus: number;
+  pendingBillId: BillId | null;
+  billStance: BillStance | null;
+  lastLegislativeSessionTurn: number;
+}
+
+export type BillId = string;
+export type BillStance = 'support' | 'oppose';
+
+export interface BillEffect {
+  taxRateDelta?: number;
+  stabilityDelta?: number;
+  opinionDelta?: number;
+  growthBonusDelta?: number;
+  debtDelta?: number;
+}
+
+export interface BillDef {
+  id: BillId;
+  name: string;
+  description: string;
+  /** Which ideology tends to favor this bill — shapes the AI's default stance. */
+  ideologyLean: Ideology;
+  passEffect: BillEffect;
+  failEffect: BillEffect;
+}
+
+export interface LegislatureConfig {
+  countryId: CountryId;
+  name: string;
+  intervalTurns: number;
+  billIds: BillId[];
 }
 
 export type TechCategory = 'economic' | 'military' | 'political';

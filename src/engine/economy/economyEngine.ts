@@ -38,6 +38,7 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
         sanctionPenalty +
         tradeBonus +
         country.techGrowthBonus +
+        country.policyGrowthBonus +
         jitter;
       const economicOutput = Math.max(1, province.economicOutput * (1 + growth));
       provinces[pid] = { ...province, economicOutput };

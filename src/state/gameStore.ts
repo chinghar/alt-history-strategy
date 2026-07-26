@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { CountryId, GameEvent, SpyMission, TreatyType, WorldState } from '../engine/core/types';
+import type { BillStance, CountryId, GameEvent, SpyMission, TreatyType, WorldState } from '../engine/core/types';
 import { buildWorld } from '../engine/core/worldFactory';
 import { advanceTurn } from '../engine/core/turnEngine';
 import { setTaxRate as applyTaxRate } from '../engine/economy/economyEngine';
@@ -7,6 +7,7 @@ import { setTreaty as applyTreaty } from '../engine/diplomacy/diplomacyEngine';
 import { declareWar as applyDeclareWar, suePeace as applySuePeace } from '../engine/warfare/warfareEngine';
 import { setResearchFocus as applySetResearchFocus } from '../engine/research/researchEngine';
 import { queueEspionageMission as applyQueueEspionageMission } from '../engine/espionage/espionageEngine';
+import { setBillStance as applySetBillStance } from '../engine/legislature/legislatureEngine';
 import { scenarios, DEFAULT_SCENARIO_ID } from '../data/scenarios';
 
 export type MapOverlay = 'political' | 'gdp' | 'ideology';
@@ -35,6 +36,7 @@ interface GameStore {
   suePeace: () => void;
   setResearchFocus: (techId: string) => void;
   orderEspionage: (otherId: CountryId, mission: SpyMission) => void;
+  castVote: (stance: BillStance) => void;
   loadScenario: (scenarioId: string) => void;
   resetScenario: () => void;
   openPicker: () => void;
@@ -224,6 +226,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const text = `${queued.countries[playerCountryId].name} dispatches agents toward ${queued.countries[otherId].name}. The outcome will become clear next turn.`;
     const nextWorld = withPlayerEvent(queued, text, 'espionage_ordered', [playerCountryId, otherId], 'minor');
+    persist(nextWorld);
+    set({ world: nextWorld });
+  },
+
+  castVote: (stance) => {
+    const { world, playerCountryId } = get();
+    if (!playerCountryId) return;
+    const applied = applySetBillStance(world, playerCountryId, stance);
+    if (applied === world) return; // no pending bill to vote on
+
+    const text = `${applied.countries[playerCountryId].name} declares a stance to ${stance} the pending bill.`;
+    const nextWorld = withPlayerEvent(applied, text, 'bill_stance_set', [playerCountryId], 'minor');
     persist(nextWorld);
     set({ world: nextWorld });
   },

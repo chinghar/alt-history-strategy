@@ -105,6 +105,10 @@ export function buildWorld(scenario: ScenarioDefinition): WorldState {
       currentResearchId: null,
       techGrowthBonus: 0,
       techMilitaryBonus: 0,
+      policyGrowthBonus: 0,
+      pendingBillId: null,
+      billStance: null,
+      lastLegislativeSessionTurn: 0,
     };
   }
 

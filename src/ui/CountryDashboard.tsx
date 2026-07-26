@@ -2,6 +2,7 @@ import { useGameStore } from '../state/gameStore';
 import { findWarBetween, getCountryRelations, getOtherParty } from '../engine/core/queries';
 import { clamp, type Country, type CountryId, type SpyMission, type TreatyType } from '../engine/core/types';
 import { TECH_REGISTRY } from '../engine/research/techs';
+import { BILL_REGISTRY, LEGISLATURE_CONFIGS } from '../engine/legislature/bills';
 
 const GOVERNMENT_LABEL: Record<string, string> = {
   absolute_monarchy: 'Absolute Monarchy',
@@ -218,6 +219,63 @@ function TechnologySummary({ country }: { country: Country }) {
   );
 }
 
+function LegislatureControls({ playerCountryId }: { playerCountryId: CountryId }) {
+  const world = useGameStore((s) => s.world);
+  const castVote = useGameStore((s) => s.castVote);
+  const country = world.countries[playerCountryId];
+  const config = LEGISLATURE_CONFIGS[playerCountryId];
+  if (!config) return null;
+
+  const pendingBill = country.pendingBillId ? BILL_REGISTRY[country.pendingBillId] : null;
+
+  return (
+    <div>
+      <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-1 capitalize">{config.name}</h3>
+      {pendingBill ? (
+        <div className="text-xs">
+          <div className="text-gray-200 font-medium">{pendingBill.name}</div>
+          <p className="text-gray-500 mt-0.5 mb-2">{pendingBill.description}</p>
+          {country.billStance ? (
+            <p className="text-gray-400">
+              You've declared a stance to <span className="capitalize text-gray-200">{country.billStance}</span> this
+              bill — resolution next turn.
+            </p>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={() => castVote('support')}
+                className="px-2 py-1 rounded text-[10px] border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
+              >
+                Support
+              </button>
+              <button
+                onClick={() => castVote('oppose')}
+                className="px-2 py-1 rounded text-[10px] border border-red-500/40 text-red-400 hover:bg-red-500/10"
+              >
+                Oppose
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <p className="text-xs text-gray-600 capitalize">{config.name} is not currently in session.</p>
+      )}
+    </div>
+  );
+}
+
+function LegislatureSummary({ country }: { country: Country }) {
+  const config = LEGISLATURE_CONFIGS[country.id];
+  if (!config || !country.pendingBillId) return null;
+  const bill = BILL_REGISTRY[country.pendingBillId];
+  return (
+    <div>
+      <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-1 capitalize">{config.name}</h3>
+      <p className="text-xs text-gray-400">Currently debating: {bill.name}</p>
+    </div>
+  );
+}
+
 function NationList() {
   const world = useGameStore((s) => s.world);
   const playerCountryId = useGameStore((s) => s.playerCountryId);
@@ -317,6 +375,12 @@ export function CountryDashboard() {
         <ResearchControls playerCountryId={country.id} />
       ) : (
         <TechnologySummary country={country} />
+      )}
+
+      {isPlayerCountry ? (
+        <LegislatureControls playerCountryId={country.id} />
+      ) : (
+        <LegislatureSummary country={country} />
       )}
 
       {isPlayerCountry ? (

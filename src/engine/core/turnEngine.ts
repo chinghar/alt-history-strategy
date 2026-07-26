@@ -9,6 +9,7 @@ import { tick as militaryTick } from '../military/militaryEngine';
 import { tick as warfareTick } from '../warfare/warfareEngine';
 import { tick as espionageTick } from '../espionage/espionageEngine';
 import { tick as wildcardTick } from '../events/wildcardEventsEngine';
+import { tick as legislatureTick } from '../legislature/legislatureEngine';
 import { tick as eventsTick } from '../events/eventEngine';
 import { recomputeAllProbabilities } from '../probability/historicalProbabilityEngine';
 import { recordTimeline } from '../timeline/timelineEngine';
@@ -17,10 +18,11 @@ const MAX_EVENT_LOG = 300;
 
 /**
  * Advances the world by one turn. Phase order — ai, espionage, wildcard
- * events, diplomacy, politics, economy, research, military, warfare,
- * events, probability, timeline — is fixed so that later phases always see
- * the effects of earlier ones within the same turn. Deterministic:
- * identical (world, seed) in always produces an identical WorldState out.
+ * events, legislature, diplomacy, politics, economy, research, military,
+ * warfare, events, probability, timeline — is fixed so that later phases
+ * always see the effects of earlier ones within the same turn.
+ * Deterministic: identical (world, seed) in always produces an identical
+ * WorldState out.
  */
 export function advanceTurn(world: WorldState): WorldState {
   const turn = world.turn + 1;
@@ -34,6 +36,7 @@ export function advanceTurn(world: WorldState): WorldState {
     aiTick,
     espionageTick,
     wildcardTick,
+    legislatureTick,
     diplomacyTick,
     politicsTick,
     economyTick,
