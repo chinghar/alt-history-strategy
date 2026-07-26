@@ -1,4 +1,4 @@
-import { clamp, type EngineResult, type PrimaryIndustry, type Rng, type WorldState } from '../core/types';
+import { clamp, type CountryId, type EngineResult, type PrimaryIndustry, type Rng, type WorldState } from '../core/types';
 import { getCountryRelations } from '../core/queries';
 
 /**
@@ -64,4 +64,17 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
   }
 
   return { world: { ...world, countries, provinces }, events: [] };
+}
+
+/** Player decision: set a country's tax rate directly, bypassing the AI's own gradual adjustment. */
+export function setTaxRate(world: WorldState, countryId: CountryId, taxRate: number): WorldState {
+  const country = world.countries[countryId];
+  if (!country) return world;
+  return {
+    ...world,
+    countries: {
+      ...world.countries,
+      [countryId]: { ...country, taxRate: clamp(taxRate, 0.05, 0.5) },
+    },
+  };
 }

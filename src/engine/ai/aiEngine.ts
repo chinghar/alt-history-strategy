@@ -27,7 +27,11 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
 
     for (const relation of getCountryRelations(world, country.id)) {
       const otherId = getOtherParty(relation, country.id);
-      if (country.id > otherId) continue; // only the "lower" id acts, so a pair is only evaluated once per turn
+      // Only the "lower" id acts, so an AI-AI pair is only evaluated once per
+      // turn — except when the other side is the player, who never runs this
+      // loop themselves, so whichever AI country holds the relation must act
+      // regardless of id ordering or that pair would never get proposals.
+      if (country.id > otherId && !world.countries[otherId]?.isPlayerControlled) continue;
 
       const key = relationKey(relation.a, relation.b);
       const current = relations[key] ?? relation;

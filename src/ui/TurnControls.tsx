@@ -13,12 +13,19 @@ export function TurnControls() {
   const resetScenario = useGameStore((s) => s.resetScenario);
   const overlay = useGameStore((s) => s.overlay);
   const setOverlay = useGameStore((s) => s.setOverlay);
+  const playerCountryId = useGameStore((s) => s.playerCountryId);
+  const playerCountryName = useGameStore((s) =>
+    s.playerCountryId ? s.world.countries[s.playerCountryId]?.name : null,
+  );
 
   return (
     <div className="flex items-center justify-between px-4 py-3 bg-[#181a21] rounded-lg">
       <div>
         <h1 className="text-base font-semibold text-gray-100">The World of 1836</h1>
-        <p className="text-xs text-gray-500">Year {date.year}</p>
+        <p className="text-xs text-gray-500">
+          Year {date.year}
+          {playerCountryId && <span> · Playing as {playerCountryName}</span>}
+        </p>
       </div>
 
       <div className="flex items-center gap-1 bg-black/30 rounded-md p-1">
