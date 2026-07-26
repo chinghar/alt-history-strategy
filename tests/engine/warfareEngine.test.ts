@@ -64,6 +64,49 @@ describe('warfareEngine', () => {
     expect(world.countries['GRC'].government.stability).toBeLessThan(beforeStability);
   });
 
+  it('annexes the loser\'s lowest-output province to the primary winner on capitulation', () => {
+    let world = buildWorld(scenario1836);
+    world = {
+      ...world,
+      countries: {
+        ...world.countries,
+        RUS: { ...world.countries['RUS'], militaryStrength: 1000 }, // guarantees RUS wins every round regardless of jitter
+      },
+    };
+    world = declareWar(world, 'RUS', 'OTT'); // OTT has two provinces: Anatolia (200) and Balkans (150, lower output)
+    const rng = createRng(7);
+
+    let ended = false;
+    for (let i = 0; i < 20 && !ended; i++) {
+      const result = warfareTick(world, rng);
+      world = result.world;
+      if (result.events.some((e) => e.type === 'war_ended')) ended = true;
+    }
+
+    expect(ended).toBe(true);
+    expect(world.countries['RUS'].provinceIds).toContain('OTT-BK');
+    expect(world.countries['OTT'].provinceIds).not.toContain('OTT-BK');
+    expect(world.countries['OTT'].provinceIds).toContain('OTT-AN');
+    expect(world.provinces['OTT-BK'].countryId).toBe('RUS');
+  });
+
+  it('never annexes a country\'s last remaining province', () => {
+    let world = buildWorld(scenario1836);
+    world = declareWar(world, 'GBR', 'GRC'); // GRC has exactly one province
+    const rng = createRng(42);
+
+    let ended = false;
+    for (let i = 0; i < 20 && !ended; i++) {
+      const result = warfareTick(world, rng);
+      world = result.world;
+      if (result.events.some((e) => e.type === 'war_ended')) ended = true;
+    }
+
+    expect(ended).toBe(true);
+    expect(world.countries['GRC'].provinceIds).toEqual(['GRC-1']);
+    expect(world.provinces['GRC-1'].countryId).toBe('GRC');
+  });
+
   it('remains deterministic across turns once a war is in progress', () => {
     const base = declareWar(buildWorld(scenario1836), 'RUS', 'OTT');
     const worldA = advanceTurns(base, 15);

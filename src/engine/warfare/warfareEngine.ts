@@ -5,6 +5,8 @@ import {
   type CountryId,
   type EngineResult,
   type GameEvent,
+  type Province,
+  type ProvinceId,
   type Rng,
   type War,
   type WorldState,
@@ -105,9 +107,67 @@ function applyBattleLosses(country: Country, isLoser: boolean, rng: Rng): Countr
     : { ...country, militaryStrength };
 }
 
+interface AnnexResult {
+  countries: Record<CountryId, Country>;
+  provinces: Record<ProvinceId, Province>;
+  annexedProvinceName: string | null;
+  cededBy: CountryId | null;
+}
+
+/**
+ * Territorial consequence of capitulation: the primary winner annexes one
+ * province from whichever losing power has the most to spare — the
+ * lowest-output (peripheral) province, never a country's last one, so wars
+ * reshape borders without being able to erase a country outright.
+ */
+function annexProvince(
+  countries: Record<CountryId, Country>,
+  provinces: Record<ProvinceId, Province>,
+  winnerId: CountryId,
+  losers: CountryId[],
+): AnnexResult {
+  const candidates = losers
+    .map((id) => countries[id])
+    .filter((c): c is Country => Boolean(c) && c.provinceIds.length > 1)
+    .sort((a, b) => b.provinceIds.length - a.provinceIds.length);
+
+  if (candidates.length === 0) {
+    return { countries, provinces, annexedProvinceName: null, cededBy: null };
+  }
+
+  const cedingCountry = candidates[0];
+  const provinceId = [...cedingCountry.provinceIds].sort(
+    (a, b) => provinces[a].economicOutput - provinces[b].economicOutput,
+  )[0];
+
+  const nextProvinces = {
+    ...provinces,
+    [provinceId]: { ...provinces[provinceId], countryId: winnerId },
+  };
+  const nextCountries = {
+    ...countries,
+    [cedingCountry.id]: {
+      ...cedingCountry,
+      provinceIds: cedingCountry.provinceIds.filter((id) => id !== provinceId),
+    },
+    [winnerId]: {
+      ...countries[winnerId],
+      provinceIds: [...countries[winnerId].provinceIds, provinceId],
+    },
+  };
+
+  return {
+    countries: nextCountries,
+    provinces: nextProvinces,
+    annexedProvinceName: provinces[provinceId].name,
+    cededBy: cedingCountry.id,
+  };
+}
+
 /** Resolves one round of combat per active war: a strength check with jitter, attrition for both sides, and capitulation once the losing side's average exhaustion maxes out. */
 export function tick(world: WorldState, rng: Rng): EngineResult {
   let countries = { ...world.countries };
+  let provinces = { ...world.provinces };
   const wars = { ...world.wars };
   const events: GameEvent[] = [];
 
@@ -162,10 +222,25 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
           .join(', ')}, ending the war.`,
         severity: 'major',
       });
+
+      const annexed = annexProvince(countries, provinces, winners[0], losers);
+      countries = annexed.countries;
+      provinces = annexed.provinces;
+      if (annexed.annexedProvinceName && annexed.cededBy) {
+        events.push({
+          id: `annex-${war.id}-${world.turn}`,
+          turn: world.turn,
+          year: world.date.year,
+          type: 'territory_annexed',
+          countryIds: [winners[0], annexed.cededBy],
+          text: `${world.countries[winners[0]].name} annexes ${annexed.annexedProvinceName} from ${world.countries[annexed.cededBy].name} in the peace settlement.`,
+          severity: 'major',
+        });
+      }
     } else {
       wars[war.id] = { ...war, exhaustion };
     }
   }
 
-  return { world: { ...world, countries, wars }, events };
+  return { world: { ...world, countries, provinces, wars }, events };
 }
