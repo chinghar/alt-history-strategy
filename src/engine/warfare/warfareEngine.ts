@@ -12,6 +12,7 @@ import {
   type WorldState,
 } from '../core/types';
 import { getCountryRelations, getOtherParty, findWarBetween } from '../core/queries';
+import { templateFlavorTextProvider as flavor } from '../flavor/flavorTextProvider';
 
 function alliesOf(world: WorldState, countryId: CountryId): CountryId[] {
   return getCountryRelations(world, countryId)
@@ -217,9 +218,11 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
         year: world.date.year,
         type: 'war_ended',
         countryIds: [...winners, ...losers],
-        text: `${world.countries[winners[0]].name} forces the capitulation of ${losers
-          .map((id) => world.countries[id].name)
-          .join(', ')}, ending the war.`,
+        text: flavor.warCapitulation(
+          world.countries[winners[0]].name,
+          losers.map((id) => world.countries[id].name),
+          rng,
+        ),
         severity: 'major',
       });
 
@@ -233,7 +236,12 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
           year: world.date.year,
           type: 'territory_annexed',
           countryIds: [winners[0], annexed.cededBy],
-          text: `${world.countries[winners[0]].name} annexes ${annexed.annexedProvinceName} from ${world.countries[annexed.cededBy].name} in the peace settlement.`,
+          text: flavor.territoryAnnexed(
+            world.countries[winners[0]].name,
+            world.countries[annexed.cededBy].name,
+            annexed.annexedProvinceName,
+            rng,
+          ),
           severity: 'major',
         });
       }

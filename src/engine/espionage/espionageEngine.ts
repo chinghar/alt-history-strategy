@@ -9,6 +9,7 @@ import {
   type WorldState,
 } from '../core/types';
 import { TECH_REGISTRY } from '../research/techs';
+import { templateFlavorTextProvider as flavor } from '../flavor/flavorTextProvider';
 
 /**
  * Player/AI decision: queue a spy mission. Resolution is deferred to the
@@ -54,7 +55,7 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
         year: world.date.year,
         type: 'espionage_exposed',
         countryIds: [agentId, targetId],
-        text: `${agent.name}'s espionage against ${target.name} is exposed, causing outrage.`,
+        text: flavor.espionageExposed(agent.name, target.name, rng),
         severity: 'notable',
       });
       continue;
@@ -89,7 +90,7 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
       year: world.date.year,
       type: 'espionage_success',
       countryIds: [agentId, targetId],
-      text: `Unconfirmed reports suggest foreign agents were active in ${target.name}.`,
+      text: flavor.espionageSuccess(target.name, mission, rng),
       severity: 'minor',
     });
   }

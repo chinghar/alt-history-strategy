@@ -8,6 +8,7 @@ import {
   type WorldState,
 } from '../core/types';
 import { averageProvinceUnrest } from '../core/queries';
+import { templateFlavorTextProvider as flavor } from '../flavor/flavorTextProvider';
 
 const COLLAPSE_STABILITY_FLOOR = 10;
 const COLLAPSE_CHANCE_PER_TURN = 0.2;
@@ -64,27 +65,27 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
         year: world.date.year,
         type: 'government_crisis',
         countryIds: [country.id],
-        text: `${country.name}'s government teeters on the edge of collapse as stability craters.`,
+        text: flavor.governmentCrisis(country.name, rng),
         severity: 'major',
       });
     }
 
     if (stability < COLLAPSE_STABILITY_FLOOR && rng.next() < COLLAPSE_CHANCE_PER_TURN) {
       let newType: GovernmentType = government.type;
-      let flavor: string;
+      let flavorText: string;
 
       if (government.type === 'republic') {
         newType = 'confederation';
-        flavor = `${country.name} fractures as constituent provinces break from the central government.`;
+        flavorText = flavor.regimeChangeFracture(country.name, rng);
       } else if (rng.next() < 0.5 && REVOLUTION_PATH[government.type]) {
         newType = REVOLUTION_PATH[government.type]!;
-        flavor = `Revolution sweeps ${country.name} — the old regime is overthrown.`;
+        flavorText = flavor.regimeChangeRevolution(country.name, rng);
       } else if (REFORM_PATH[government.type]) {
         newType = REFORM_PATH[government.type]!;
-        flavor = `${country.name}'s government concedes sweeping reforms to survive the crisis.`;
+        flavorText = flavor.regimeChangeReform(country.name, rng);
       } else {
         newType = government.type;
-        flavor = `A new government takes power in ${country.name} after the old one collapses.`;
+        flavorText = flavor.regimeChangeReshuffle(country.name, rng);
       }
 
       const otherIdeologies = IDEOLOGIES.filter((i) => i !== country.ideology);
@@ -102,7 +103,7 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
         year: world.date.year,
         type: 'regime_change',
         countryIds: [country.id],
-        text: flavor,
+        text: flavorText,
         severity: 'major',
       });
     }

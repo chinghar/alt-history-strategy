@@ -10,6 +10,7 @@ import {
 import { getCountryRelations, getOtherParty, isAtWar } from '../core/queries';
 import { declareWar } from '../warfare/warfareEngine';
 import { queueEspionageMission } from '../espionage/espionageEngine';
+import { templateFlavorTextProvider as flavor } from '../flavor/flavorTextProvider';
 
 const WAR_RELATION_THRESHOLD = -80;
 const WAR_STRENGTH_RATIO = 1.4;
@@ -61,7 +62,7 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
           year: world.date.year,
           type: 'alliance_formed',
           countryIds: [relation.a, relation.b],
-          text: `${world.countries[relation.a].name} and ${world.countries[relation.b].name} formalize an alliance.`,
+          text: flavor.allianceFormed(world.countries[relation.a].name, world.countries[relation.b].name, rng),
           severity: 'notable',
         });
       } else if (relation.score < -60 && !current.treaties.includes('sanction') && rng.next() < 0.15) {
@@ -72,7 +73,7 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
           year: world.date.year,
           type: 'sanction_imposed',
           countryIds: [relation.a, relation.b],
-          text: `${world.countries[relation.a].name} imposes sanctions on ${world.countries[relation.b].name}.`,
+          text: flavor.sanctionImposed(world.countries[relation.a].name, world.countries[relation.b].name, rng),
           severity: 'notable',
         });
       }
@@ -106,7 +107,7 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
             year: world.date.year,
             type: 'war_declared',
             countryIds: [country.id, otherId],
-            text: `${country.name} declares war on ${other.name}.`,
+            text: flavor.warDeclared(country.name, other.name, rng),
             severity: 'major',
           });
         }

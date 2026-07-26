@@ -1,5 +1,6 @@
 import { clamp, type Country, type CountryId, type EngineResult, type GameEvent, type Rng, type TechId, type WorldState } from '../core/types';
 import { TECH_REGISTRY } from './techs';
+import { templateFlavorTextProvider as flavor } from '../flavor/flavorTextProvider';
 
 const FUNDING_RATE = 0.02; // fraction of GDP converted to research points each turn
 
@@ -67,7 +68,7 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
           year: world.date.year,
           type: 'tech_unlocked',
           countryIds: [country.id],
-          text: `${country.name} completes research into ${tech.name}.`,
+          text: flavor.techUnlocked(country.name, tech.name, rng),
           severity: 'notable',
         });
 

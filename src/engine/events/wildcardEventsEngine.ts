@@ -1,4 +1,5 @@
 import { clamp, relationKey, type CountryId, type EngineResult, type GameEvent, type Rng, type WorldState } from '../core/types';
+import { templateFlavorTextProvider as flavor } from '../flavor/flavorTextProvider';
 
 const EVENT_CHANCE = 0.025;
 
@@ -21,7 +22,7 @@ function resourceDiscovery(world: WorldState, countryId: CountryId, rng: Rng): W
       ...world,
       provinces: { ...world.provinces, [pid]: { ...province, economicOutput: province.economicOutput * boost } },
     },
-    text: `A valuable resource discovery in ${province.name} spurs a local boom for ${country.name}.`,
+    text: flavor.resourceDiscovery(country.name, province.name, rng),
     severity: 'notable',
   };
 }
@@ -44,7 +45,7 @@ function naturalDisaster(world: WorldState, countryId: CountryId, rng: Rng): Wil
         },
       },
     },
-    text: `A natural disaster strikes ${province.name}, disrupting ${country.name}'s economy.`,
+    text: flavor.naturalDisaster(country.name, province.name, rng),
     severity: 'notable',
   };
 }
@@ -61,7 +62,7 @@ function diplomaticIncident(world: WorldState, countryId: CountryId, rng: Rng): 
       ...world,
       relations: { ...world.relations, [key]: { ...relation, score: clamp(relation.score - drop, -100, 100) } },
     },
-    text: `A diplomatic incident strains relations between ${world.countries[countryId].name} and ${world.countries[otherId].name}.`,
+    text: flavor.diplomaticIncident(world.countries[countryId].name, world.countries[otherId].name, rng),
     severity: 'notable',
   };
 }
@@ -77,7 +78,7 @@ function culturalFlourishing(world: WorldState, countryId: CountryId, rng: Rng):
         [countryId]: { ...country, publicOpinion: clamp(country.publicOpinion + boost, 0, 100) },
       },
     },
-    text: `A wave of cultural achievement lifts national pride in ${country.name}.`,
+    text: flavor.culturalFlourishing(country.name, rng),
     severity: 'minor',
   };
 }
@@ -96,7 +97,7 @@ function epidemic(world: WorldState, countryId: CountryId, rng: Rng): WildcardOu
       provinces,
       countries: { ...world.countries, [countryId]: { ...country, debt: country.debt + country.gdp * 0.03 } },
     },
-    text: `An epidemic sweeps through ${country.name}, straining public order and finances.`,
+    text: flavor.epidemic(country.name, rng),
     severity: 'major',
   };
 }

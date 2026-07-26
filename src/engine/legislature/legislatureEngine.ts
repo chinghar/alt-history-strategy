@@ -10,6 +10,7 @@ import {
   type WorldState,
 } from '../core/types';
 import { BILL_REGISTRY, LEGISLATURE_CONFIGS } from './bills';
+import { templateFlavorTextProvider as flavor } from '../flavor/flavorTextProvider';
 
 function applyBillEffect(country: Country, effect: BillEffect): Country {
   return {
@@ -73,8 +74,8 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
         type: passed ? 'bill_passed' : 'bill_failed',
         countryIds: [config.countryId],
         text: passed
-          ? `${config.name} passes the ${bill.name}.`
-          : `${config.name} rejects the ${bill.name}.`,
+          ? flavor.billPassed(config.name, bill.name, rng)
+          : flavor.billRejected(config.name, bill.name, rng),
         severity: 'major',
       });
     } else if (world.turn - country.lastLegislativeSessionTurn >= config.intervalTurns) {
@@ -88,7 +89,7 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
         year: world.date.year,
         type: 'bill_convened',
         countryIds: [config.countryId],
-        text: `${config.name} convenes to debate the ${bill.name}.`,
+        text: flavor.billConvened(config.name, bill.name, rng),
         severity: 'notable',
       });
     }

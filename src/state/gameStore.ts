@@ -2,22 +2,28 @@ import { create } from 'zustand';
 import type { BillStance, CountryId, GameEvent, SpyMission, TreatyType, WorldState } from '../engine/core/types';
 import { buildWorld } from '../engine/core/worldFactory';
 import { advanceTurn } from '../engine/core/turnEngine';
+import { createRng, deriveSeed } from '../engine/core/rng';
 import { setTaxRate as applyTaxRate } from '../engine/economy/economyEngine';
 import { setTreaty as applyTreaty } from '../engine/diplomacy/diplomacyEngine';
 import { declareWar as applyDeclareWar, suePeace as applySuePeace } from '../engine/warfare/warfareEngine';
 import { setResearchFocus as applySetResearchFocus } from '../engine/research/researchEngine';
 import { queueEspionageMission as applyQueueEspionageMission } from '../engine/espionage/espionageEngine';
 import { setBillStance as applySetBillStance } from '../engine/legislature/legislatureEngine';
+import { templateFlavorTextProvider as flavor } from '../engine/flavor/flavorTextProvider';
 import { scenarios, DEFAULT_SCENARIO_ID } from '../data/scenarios';
 
 export type MapOverlay = 'political' | 'gdp' | 'ideology' | 'population' | 'military' | 'provinces';
 
-const TREATY_PHRASE: Record<TreatyType, string> = {
-  alliance: 'an alliance',
-  trade_agreement: 'a trade agreement',
-  non_aggression: 'a non-aggression pact',
-  sanction: 'sanctions',
-};
+/**
+ * Player actions fire between turns, outside any tick's seeded rng — but
+ * flavor text still must never touch Math.random(), so each call derives its
+ * own one-off Rng from the world's seed plus how many events have already
+ * been logged this turn, keeping it deterministic without needing a live rng
+ * threaded through the store.
+ */
+function playerActionRng(world: WorldState) {
+  return createRng(deriveSeed(world.seed, world.turn * 1000 + world.eventLog.length));
+}
 
 interface GameStore {
   world: WorldState;
@@ -173,10 +179,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const playerName = applied.countries[playerCountryId].name;
     const otherName = applied.countries[otherId].name;
-    const text =
-      treaty === 'sanction'
-        ? `${playerName} ${active ? 'imposes sanctions on' : 'lifts sanctions on'} ${otherName}.`
-        : `${playerName} ${active ? 'forms' : 'withdraws from'} ${TREATY_PHRASE[treaty]} with ${otherName}.`;
+    const rng = playerActionRng(applied);
+    const text = active
+      ? flavor.treatyFormed(playerName, otherName, treaty, rng)
+      : flavor.treatyRevoked(playerName, otherName, treaty, rng);
 
     const nextWorld = withPlayerEvent(applied, text, active ? 'treaty_formed' : 'treaty_revoked', [
       playerCountryId,
@@ -192,7 +198,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const applied = applyDeclareWar(world, playerCountryId, otherId);
     if (applied === world) return; // already at war
 
-    const text = `${applied.countries[playerCountryId].name} declares war on ${applied.countries[otherId].name}.`;
+    const text = flavor.warDeclared(
+      applied.countries[playerCountryId].name,
+      applied.countries[otherId].name,
+      playerActionRng(applied),
+    );
     const nextWorld = withPlayerEvent(applied, text, 'war_declared', [playerCountryId, otherId], 'major');
     persist(nextWorld);
     set({ world: nextWorld });
@@ -204,7 +214,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const applied = applySuePeace(world, playerCountryId);
     if (applied === world) return; // not at war
 
-    const text = `${applied.countries[playerCountryId].name} sues for peace, ending the war.`;
+    const text = flavor.peaceSued(applied.countries[playerCountryId].name, playerActionRng(applied));
     const nextWorld = withPlayerEvent(applied, text, 'peace_sued', [playerCountryId], 'major');
     persist(nextWorld);
     set({ world: nextWorld });
@@ -224,7 +234,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const queued = applyQueueEspionageMission(world, playerCountryId, otherId, mission);
     if (queued === world) return;
 
-    const text = `${queued.countries[playerCountryId].name} dispatches agents toward ${queued.countries[otherId].name}. The outcome will become clear next turn.`;
+    const text = flavor.espionageOrdered(
+      queued.countries[playerCountryId].name,
+      queued.countries[otherId].name,
+      playerActionRng(queued),
+    );
     const nextWorld = withPlayerEvent(queued, text, 'espionage_ordered', [playerCountryId, otherId], 'minor');
     persist(nextWorld);
     set({ world: nextWorld });
@@ -236,7 +250,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const applied = applySetBillStance(world, playerCountryId, stance);
     if (applied === world) return; // no pending bill to vote on
 
-    const text = `${applied.countries[playerCountryId].name} declares a stance to ${stance} the pending bill.`;
+    const text = flavor.billStanceSet(applied.countries[playerCountryId].name, stance, playerActionRng(applied));
     const nextWorld = withPlayerEvent(applied, text, 'bill_stance_set', [playerCountryId], 'minor');
     persist(nextWorld);
     set({ world: nextWorld });
