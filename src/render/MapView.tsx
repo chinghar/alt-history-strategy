@@ -1,8 +1,22 @@
 import { useMemo, useState } from 'react';
 import { countryFeatures, mapDimensions } from './worldGeo';
-import { gdpColor, ideologyColor, politicalColor, NEUTRAL_BORDER, NEUTRAL_LAND } from './colors';
+import {
+  gdpColor,
+  ideologyColor,
+  militaryColor,
+  politicalColor,
+  populationColor,
+  NEUTRAL_BORDER,
+  NEUTRAL_LAND,
+} from './colors';
 import { useGameStore } from '../state/gameStore';
-import type { CountryId } from '../engine/core/types';
+import type { CountryId, WorldState } from '../engine/core/types';
+
+function totalPopulation(world: WorldState, countryId: CountryId): number {
+  const country = world.countries[countryId];
+  if (!country) return 0;
+  return country.provinceIds.reduce((sum, pid) => sum + (world.provinces[pid]?.population ?? 0), 0);
+}
 
 export function MapView() {
   const world = useGameStore((s) => s.world);
@@ -22,6 +36,16 @@ export function MapView() {
     return { min: Math.min(...values), max: Math.max(...values) };
   }, [world.countries]);
 
+  const populationRange = useMemo(() => {
+    const values = Object.keys(world.countries).map((id) => totalPopulation(world, id));
+    return { min: Math.min(...values), max: Math.max(...values) };
+  }, [world]);
+
+  const militaryRange = useMemo(() => {
+    const values = Object.values(world.countries).map((c) => c.militaryStrength);
+    return { min: Math.min(...values), max: Math.max(...values) };
+  }, [world.countries]);
+
   const hasMappedCountries = useMemo(
     () => countryFeatures.some((f) => f.countryId !== null && f.countryId in world.countries),
     [world.countries],
@@ -33,6 +57,12 @@ export function MapView() {
     if (!country) return NEUTRAL_LAND;
     if (overlay === 'gdp') return gdpColor(country.gdp, gdpRange.min, gdpRange.max);
     if (overlay === 'ideology') return ideologyColor(country.ideology);
+    if (overlay === 'population') {
+      return populationColor(totalPopulation(world, countryId), populationRange.min, populationRange.max);
+    }
+    if (overlay === 'military') {
+      return militaryColor(country.militaryStrength, militaryRange.min, militaryRange.max);
+    }
     return politicalColor(countryIndex.get(countryId) ?? 0);
   }
 
@@ -69,7 +99,8 @@ export function MapView() {
         <div className="pointer-events-none absolute left-3 bottom-3 rounded-md bg-black/80 px-3 py-2 text-sm text-gray-100 shadow-lg">
           <div className="font-semibold">{hovered.name}</div>
           <div className="text-gray-400">
-            GDP {Math.round(hovered.gdp)} · Opinion {Math.round(hovered.publicOpinion)}
+            GDP {Math.round(hovered.gdp)} · Population{' '}
+            {totalPopulation(world, hoveredId!).toFixed(1)}M · Military {Math.round(hovered.militaryStrength)}
           </div>
         </div>
       )}

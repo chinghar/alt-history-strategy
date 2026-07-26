@@ -21,7 +21,10 @@ export function politicalColor(countryIndex: number): string {
   return CATEGORICAL[countryIndex % CATEGORICAL.length];
 }
 
-// Sequential blue ramp, light->dark (dataviz skill reference palette).
+// Sequential ramps, light->dark, one hue per magnitude overlay (dataviz
+// skill reference palette for blue; orange/aqua stepped in the same
+// lightness pattern so multiple sequential overlays stay visually
+// consistent without ever mixing hues within one overlay).
 const SEQUENTIAL_BLUE: readonly string[] = [
   '#cde2fb',
   '#9ec5f4',
@@ -32,11 +35,43 @@ const SEQUENTIAL_BLUE: readonly string[] = [
   '#0d366b',
 ];
 
+const SEQUENTIAL_ORANGE: readonly string[] = [
+  '#fde2d0',
+  '#fbc7a1',
+  '#f6a873',
+  '#d95926',
+  '#b8461a',
+  '#8f3512',
+  '#6b280d',
+];
+
+const SEQUENTIAL_AQUA: readonly string[] = [
+  '#c9f1e4',
+  '#a0e3cc',
+  '#6fd0b0',
+  '#199e70',
+  '#12805a',
+  '#0b6244',
+  '#07472f',
+];
+
+function sequentialColor(value: number, min: number, max: number, ramp: readonly string[]): string {
+  if (max <= min) return ramp[3];
+  const t = Math.min(1, Math.max(0, (value - min) / (max - min)));
+  const idx = Math.round(t * (ramp.length - 1));
+  return ramp[idx];
+}
+
 export function gdpColor(gdp: number, min: number, max: number): string {
-  if (max <= min) return SEQUENTIAL_BLUE[3];
-  const t = Math.min(1, Math.max(0, (gdp - min) / (max - min)));
-  const idx = Math.round(t * (SEQUENTIAL_BLUE.length - 1));
-  return SEQUENTIAL_BLUE[idx];
+  return sequentialColor(gdp, min, max, SEQUENTIAL_BLUE);
+}
+
+export function populationColor(population: number, min: number, max: number): string {
+  return sequentialColor(population, min, max, SEQUENTIAL_ORANGE);
+}
+
+export function militaryColor(strength: number, min: number, max: number): string {
+  return sequentialColor(strength, min, max, SEQUENTIAL_AQUA);
 }
 
 const IDEOLOGY_COLOR: Record<Ideology, string> = {
