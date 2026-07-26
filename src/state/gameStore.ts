@@ -41,6 +41,8 @@ interface GameStore {
   closePicker: () => void;
   openEncyclopedia: () => void;
   closeEncyclopedia: () => void;
+  exportSave: () => void;
+  importSave: (json: string) => boolean;
 }
 
 const SAVE_KEY_PREFIX = 'alt-history-strategy:save:';
@@ -68,6 +70,19 @@ function loadWorldForScenario(scenarioId: string): WorldState {
 
 function persist(world: WorldState) {
   localStorage.setItem(saveKeyFor(world.scenarioId), JSON.stringify(world));
+}
+
+/** Loose structural check for imported save files — enough to catch garbage/corrupt input, not a full schema validator. */
+function isValidWorldState(value: unknown): value is WorldState {
+  if (!value || typeof value !== 'object') return false;
+  const w = value as Partial<WorldState>;
+  return (
+    typeof w.scenarioId === 'string' &&
+    w.scenarioId in scenarios &&
+    typeof w.turn === 'number' &&
+    typeof w.countries === 'object' &&
+    w.countries !== null
+  );
 }
 
 /** Appends a player-initiated event to both the news log and the historical record. */
@@ -223,5 +238,38 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const world = buildWorld(scenarios[current.scenarioId]);
     persist(world);
     set({ world, selectedCountryId: null, playerCountryId: null, pickerOpen: true });
+  },
+
+  exportSave: () => {
+    const { world } = get();
+    const blob = new Blob([JSON.stringify(world, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${world.scenarioId}-turn${world.turn}-${world.date.year}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  },
+
+  importSave: (json) => {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(json);
+    } catch {
+      return false;
+    }
+    if (!isValidWorldState(parsed)) return false;
+
+    persist(parsed);
+    set({
+      world: parsed,
+      selectedCountryId: null,
+      playerCountryId: findPlayerCountryId(parsed),
+      pickerOpen: false,
+      encyclopediaOpen: false,
+    });
+    return true;
   },
 }));

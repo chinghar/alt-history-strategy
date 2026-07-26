@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import type { MapOverlay } from '../state/gameStore';
 import { useGameStore } from '../state/gameStore';
 import { scenarios } from '../data/scenarios';
@@ -22,6 +23,19 @@ export function TurnControls() {
   const playerCountryName = useGameStore((s) =>
     s.playerCountryId ? s.world.countries[s.playerCountryId]?.name : null,
   );
+  const exportSave = useGameStore((s) => s.exportSave);
+  const importSave = useGameStore((s) => s.importSave);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const text = await file.text();
+    if (!importSave(text)) {
+      alert("Couldn't load that save file — it doesn't look like a valid save for this game.");
+    }
+  };
 
   return (
     <div className="flex items-center justify-between px-4 py-3 bg-[#181a21] rounded-lg">
@@ -48,6 +62,25 @@ export function TurnControls() {
       </div>
 
       <div className="flex items-center gap-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/json"
+          className="hidden"
+          onChange={handleImportFile}
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 border border-white/10 rounded-md"
+        >
+          Import
+        </button>
+        <button
+          onClick={exportSave}
+          className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 border border-white/10 rounded-md"
+        >
+          Export
+        </button>
         <button
           onClick={openEncyclopedia}
           className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 border border-white/10 rounded-md"
