@@ -49,7 +49,8 @@ const US_STATE_TO_PROVINCE: Record<string, ProvinceId> = {
   Arkansas: 'USA-DS',
 };
 
-export interface StateFeature {
+/** Shared shape for any sub-national geometry source (US states, Japanese prefectures, ...). */
+export interface ProvinceFeature {
   name: string;
   provinceId: ProvinceId | null;
   path: string;
@@ -61,8 +62,8 @@ const stateFeatures = feature(
 ) as unknown as FeatureCollection<Geometry, { name: string }>;
 
 /** Every US state as SVG path data (in the same projection as the world map), tagged with its 1836 province where mapped. */
-export const usProvinceFeatures: StateFeature[] = stateFeatures.features
-  .map((f): StateFeature | null => {
+export const usProvinceFeatures: ProvinceFeature[] = stateFeatures.features
+  .map((f): ProvinceFeature | null => {
     const path = pathGenerator(f);
     if (!path) return null;
     const provinceId: ProvinceId | null = US_STATE_TO_PROVINCE[f.properties.name] ?? null;
@@ -72,4 +73,4 @@ export const usProvinceFeatures: StateFeature[] = stateFeatures.features
       path,
     };
   })
-  .filter((f): f is StateFeature => f !== null);
+  .filter((f): f is ProvinceFeature => f !== null);

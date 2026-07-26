@@ -212,6 +212,14 @@ export interface WorldState {
   activeOutcomeTrackerIds: OutcomeId[];
   /** Which entries in the global tech registry are researchable in this scenario/era. */
   availableTechIds: TechId[];
+  /**
+   * Which entries in the global LEGISLATURE_CONFIGS registry are active this
+   * scenario. Country-specific subgames are keyed by CountryId, and IDs like
+   * 'GBR'/'USA'/'RUS' are deliberately reused across eras — without this
+   * filter, 1914's United Kingdom would inherit 1836's already-repealed Corn
+   * Law debates. Same scoping pattern as activeOutcomeTrackerIds.
+   */
+  activeLegislatureCountryIds: CountryId[];
 }
 
 /** Shape every simulation engine's per-turn tick conforms to. */

@@ -28,6 +28,7 @@ export const scenario431bce: ScenarioDefinition = {
   startYear: -431,
   seed: 4310431,
   outcomeTrackerIds: ['spartan-victory', 'macedonian-hegemony', 'carthaginian-dominance', 'roman-ascendancy'],
+  legislatureCountryIds: ['ATH'],
   techIds: [
     'trireme_design',
     'hoplite_phalanx_reform',

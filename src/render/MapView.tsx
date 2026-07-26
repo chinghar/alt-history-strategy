@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { countryFeatures, mapDimensions, type CountryFeature } from './worldGeo';
-import { usProvinceFeatures, type StateFeature } from './provinceGeo';
+import { usProvinceFeatures, type ProvinceFeature } from './provinceGeo';
+import { japanInsetDimensions, japanProvinceFeatures } from './japanProvinceGeo';
 import {
   gdpColor,
   ideologyColor,
@@ -31,7 +32,7 @@ export function MapView() {
   const selectedCountryId = useGameStore((s) => s.selectedCountryId);
   const selectCountry = useGameStore((s) => s.selectCountry);
   const [hoveredId, setHoveredId] = useState<CountryId | null>(null);
-  const [hoveredState, setHoveredState] = useState<StateFeature | null>(null);
+  const [hoveredState, setHoveredState] = useState<ProvinceFeature | null>(null);
 
   const countryIndex = useMemo(() => {
     const map = new Map<CountryId, number>();
@@ -59,12 +60,16 @@ export function MapView() {
     [world],
   );
 
-  // Only draw the province-level inset when its provinces actually exist in
-  // the active world — 1836's USA has USA-NE/MA/US/DS, but 2150's or 431
-  // BCE's don't (2150's USA has entirely different provinces, 431 BCE has
-  // no USA at all), so this overlay silently has nothing to add there.
-  const showProvinceInset =
+  // us-atlas shares real lon/lat with the world map's own projection, so its
+  // states overlay pixel-perfectly on the main SVG. jpn-atlas ships
+  // pre-projected planar coordinates instead (see japanProvinceGeo.ts) —
+  // incompatible with that shared projection — so Japan renders as its own
+  // small inset panel with a separate local coordinate space instead.
+  const showUsInset =
     overlay === 'provinces' && usProvinceFeatures.some((f) => f.provinceId && f.provinceId in world.provinces);
+  const showJapanInset =
+    overlay === 'provinces' && japanProvinceFeatures.some((f) => f.provinceId && f.provinceId in world.provinces);
+  const showProvinceInset = showUsInset || showJapanInset;
 
   function fillFor(countryId: CountryId | null): string {
     if (!countryId) return NEUTRAL_LAND;
@@ -111,7 +116,7 @@ export function MapView() {
             />
           );
         })}
-        {showProvinceInset &&
+        {showUsInset &&
           usProvinceFeatures.map((state, i) => {
             const province = state.provinceId ? world.provinces[state.provinceId] : null;
             if (!province) return null;
@@ -127,11 +132,43 @@ export function MapView() {
                 className="cursor-pointer transition-opacity"
                 onMouseEnter={() => setHoveredState(state)}
                 onMouseLeave={() => setHoveredState(null)}
-                onClick={() => selectCountry('USA')}
+                onClick={() => selectCountry(province.countryId)}
               />
             );
           })}
       </svg>
+      {showJapanInset && (
+        <div className="absolute top-3 right-3 rounded-md bg-black/60 p-2">
+          <div className="text-[10px] text-gray-400 mb-1 text-center">Japan</div>
+          <svg
+            viewBox={`0 0 ${japanInsetDimensions.width} ${japanInsetDimensions.height}`}
+            width={japanInsetDimensions.width}
+            height={japanInsetDimensions.height}
+            role="img"
+            aria-label="Japan prefecture map"
+          >
+            {japanProvinceFeatures.map((state, i) => {
+              const province = state.provinceId ? world.provinces[state.provinceId] : null;
+              if (!province) return null;
+              const isHovered = hoveredState?.name === state.name;
+              return (
+                <path
+                  key={`jpn-${state.name}-${i}`}
+                  d={state.path}
+                  fill={industryColor(province.primaryIndustry)}
+                  stroke="#0b0c10"
+                  strokeWidth={0.5}
+                  opacity={isHovered ? 0.85 : 1}
+                  className="cursor-pointer transition-opacity"
+                  onMouseEnter={() => setHoveredState(state)}
+                  onMouseLeave={() => setHoveredState(null)}
+                  onClick={() => selectCountry(province.countryId)}
+                />
+              );
+            })}
+          </svg>
+        </div>
+      )}
       {hoveredState && hoveredProvince ? (
         <div className="pointer-events-none absolute left-3 bottom-3 rounded-md bg-black/80 px-3 py-2 text-sm text-gray-100 shadow-lg">
           <div className="font-semibold">{hoveredState.name}</div>
@@ -162,7 +199,7 @@ export function MapView() {
       {overlay === 'provinces' && !showProvinceInset && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="bg-black/80 rounded-md px-4 py-3 text-sm text-gray-300 max-w-xs text-center">
-            No province-level geometry for this era yet — currently available for the USA in 1836.
+            No province-level geometry for this era yet — currently available for the USA in 1836 and Japan in 1962.
           </div>
         </div>
       )}

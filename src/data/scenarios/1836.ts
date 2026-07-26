@@ -24,6 +24,7 @@ export const scenario1836: ScenarioDefinition = {
   startYear: 1836,
   seed: 18360101,
   outcomeTrackerIds: ['german-unification', 'american-civil-war', 'ottoman-decline', 'opium-war-british-victory'],
+  legislatureCountryIds: ['USA', 'GBR'],
   techIds: [
     'railways',
     'telegraph',

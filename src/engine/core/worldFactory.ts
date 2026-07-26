@@ -59,6 +59,8 @@ export interface ScenarioDefinition {
   outcomeTrackerIds: OutcomeId[];
   /** Which entries in the global tech registry are researchable in this scenario's era. */
   techIds: TechId[];
+  /** Which entries in the global LEGISLATURE_CONFIGS registry are active this scenario. */
+  legislatureCountryIds: CountryId[];
 }
 
 /** Builds the initial WorldState from a hand-authored scenario definition. */
@@ -147,6 +149,7 @@ export function buildWorld(scenario: ScenarioDefinition): WorldState {
     probabilities: {},
     activeOutcomeTrackerIds: scenario.outcomeTrackerIds,
     availableTechIds: scenario.techIds,
+    activeLegislatureCountryIds: scenario.legislatureCountryIds,
   };
 
   world = recomputeAllProbabilities(world);

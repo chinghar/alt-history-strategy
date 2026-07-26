@@ -226,7 +226,7 @@ function LegislatureControls({ playerCountryId }: { playerCountryId: CountryId }
   const castVote = useGameStore((s) => s.castVote);
   const country = world.countries[playerCountryId];
   const config = LEGISLATURE_CONFIGS[playerCountryId];
-  if (!config) return null;
+  if (!config || !world.activeLegislatureCountryIds.includes(playerCountryId)) return null;
 
   const pendingBill = country.pendingBillId ? BILL_REGISTRY[country.pendingBillId] : null;
 
@@ -267,8 +267,9 @@ function LegislatureControls({ playerCountryId }: { playerCountryId: CountryId }
 }
 
 function LegislatureSummary({ country }: { country: Country }) {
+  const activeLegislatureCountryIds = useGameStore((s) => s.world.activeLegislatureCountryIds);
   const config = LEGISLATURE_CONFIGS[country.id];
-  if (!config) return null;
+  if (!config || !activeLegislatureCountryIds.includes(country.id)) return null;
   const bill = country.pendingBillId ? BILL_REGISTRY[country.pendingBillId] : null;
   return (
     <div>
@@ -356,7 +357,8 @@ export function CountryDashboard() {
   if (!country) return null;
 
   const isPlayerCountry = selectedCountryId === playerCountryId;
-  const hasLegislature = Boolean(LEGISLATURE_CONFIGS[country.id]);
+  const hasLegislature =
+    Boolean(LEGISLATURE_CONFIGS[country.id]) && world.activeLegislatureCountryIds.includes(country.id);
 
   const tabs: { id: DashboardTab; label: string }[] = [
     { id: 'overview', label: 'Overview' },

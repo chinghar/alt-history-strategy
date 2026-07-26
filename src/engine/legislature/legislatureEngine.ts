@@ -47,7 +47,11 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
   const countries = { ...world.countries };
   const events: GameEvent[] = [];
 
-  for (const config of Object.values(LEGISLATURE_CONFIGS)) {
+  const activeConfigs = Object.values(LEGISLATURE_CONFIGS).filter((c) =>
+    world.activeLegislatureCountryIds.includes(c.countryId),
+  );
+
+  for (const config of activeConfigs) {
     const country = countries[config.countryId];
     if (!country) continue;
 

@@ -7,6 +7,14 @@ import { macedonianHegemonyTracker } from './macedonianHegemony';
 import { carthaginianDominanceTracker } from './carthaginianDominance';
 import { opiumWarTracker } from './opiumWar';
 import { romanAscendancyTracker } from './romanAscendancy';
+import { mongolConquestTracker } from './mongolConquest';
+import { fallOfConstantinopleTracker } from './fallOfConstantinople';
+import { khwarezmianDestructionTracker } from './khwarezmianDestruction';
+import { greatWarOutbreakTracker } from './greatWarOutbreak';
+import { russianRevolutionTracker } from './russianRevolution';
+import { cubanMissileCrisisPeaceTracker } from './cubanMissileCrisisPeace';
+import { sinoSovietSplitTracker } from './sinoSovietSplit';
+import { japaneseEconomicMiracleTracker } from './japaneseEconomicMiracle';
 
 export const defaultOutcomeTrackers: HistoricalOutcomeTracker[] = [
   germanUnificationTracker,
@@ -17,4 +25,12 @@ export const defaultOutcomeTrackers: HistoricalOutcomeTracker[] = [
   carthaginianDominanceTracker,
   opiumWarTracker,
   romanAscendancyTracker,
+  mongolConquestTracker,
+  fallOfConstantinopleTracker,
+  khwarezmianDestructionTracker,
+  greatWarOutbreakTracker,
+  russianRevolutionTracker,
+  cubanMissileCrisisPeaceTracker,
+  sinoSovietSplitTracker,
+  japaneseEconomicMiracleTracker,
 ];

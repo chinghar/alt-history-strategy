@@ -45,6 +45,28 @@ const COUNTRY_GEO_NAME: Record<CountryId, string> = {
   PPA: 'Japan',
   SAU: 'Brazil',
   ARC: 'Greenland',
+  // 1200 CE — same "closest modern analog" simplification. JIN (Jin Dynasty,
+  // northern China) is deliberately unmapped: world-atlas doesn't subdivide
+  // China, and SNG already claims that polygon within this scenario's roster.
+  MON: 'Mongolia',
+  SNG: 'China',
+  BYZ: 'Turkey',
+  KHR: 'Uzbekistan',
+  DEL: 'India',
+  ENG: 'United Kingdom',
+  HRE: 'Germany',
+  VEN: 'Italy',
+  KHM: 'Cambodia',
+  // 1914
+  GER: 'Germany',
+  AUH: 'Austria',
+  ITA: 'Italy',
+  SRB: 'Serbia',
+  // 1962 — FRG claims 'Germany'; GDR is deliberately unmapped rather than
+  // sharing that polygon with FRG within the same active scenario.
+  USR: 'Russia',
+  FRG: 'Germany',
+  CUB: 'Cuba',
 };
 
 export interface CountryFeature {

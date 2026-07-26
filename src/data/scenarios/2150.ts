@@ -31,6 +31,7 @@ export const scenario2150: ScenarioDefinition = {
   startYear: 2150,
   seed: 21500615,
   outcomeTrackerIds: [],
+  legislatureCountryIds: ['EUF'],
   techIds: [
     'fusion_power',
     'orbital_elevators',

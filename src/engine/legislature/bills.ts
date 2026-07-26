@@ -144,6 +144,84 @@ const registry: BillDef[] = [
     passEffect: { stabilityDelta: 5, debtDelta: 20 },
     failEffect: { opinionDelta: -2 },
   },
+
+  // --- German Reichstag (1914) ---
+  {
+    id: 'naval_construction_bill',
+    name: 'Naval Construction Bill',
+    description: 'Funds an expanded battle fleet to match British naval strength.',
+    ideologyLean: 'nationalist',
+    passEffect: { debtDelta: 35, growthBonusDelta: 0.004 },
+    failEffect: { opinionDelta: -2 },
+  },
+  {
+    id: 'social_insurance_extension',
+    name: 'Social Insurance Extension',
+    description: 'Broadens state sickness and old-age insurance to more categories of workers.',
+    ideologyLean: 'reformist',
+    passEffect: { stabilityDelta: 6, opinionDelta: 4 },
+    failEffect: { opinionDelta: -3 },
+  },
+  {
+    id: 'grain_tariff_bill',
+    name: 'Grain Tariff Bill',
+    description: 'Protects East Elbian agriculture with tariffs on imported grain.',
+    ideologyLean: 'conservative',
+    passEffect: { taxRateDelta: 0.012 },
+    failEffect: { opinionDelta: -2 },
+  },
+
+  // --- Russian Imperial Duma (1914) ---
+  {
+    id: 'land_reform_decree',
+    name: 'Land Reform Decree',
+    description: "Expands peasant landholding rights outside the traditional commune.",
+    ideologyLean: 'reformist',
+    passEffect: { stabilityDelta: 7, debtDelta: 10 },
+    failEffect: { opinionDelta: -4 },
+  },
+  {
+    id: 'railway_expansion_grant',
+    name: 'Railway Expansion Grant',
+    description: 'State funding to extend the rail network into Siberia and the frontier.',
+    ideologyLean: 'nationalist',
+    passEffect: { growthBonusDelta: 0.007, debtDelta: 25 },
+    failEffect: {},
+  },
+  {
+    id: 'duma_franchise_bill',
+    name: 'Duma Franchise Bill',
+    description: "Broadens the electoral franchise for the Duma's lower chamber.",
+    ideologyLean: 'liberal',
+    passEffect: { stabilityDelta: 5, opinionDelta: 5 },
+    failEffect: { opinionDelta: -5 },
+  },
+
+  // --- Soviet Presidium (1962) ---
+  {
+    id: 'five_year_plan_targets',
+    name: 'Five-Year Plan Targets',
+    description: 'Sets aggressive industrial output quotas for the next planning cycle.',
+    ideologyLean: 'nationalist',
+    passEffect: { growthBonusDelta: 0.009, opinionDelta: -2 },
+    failEffect: { stabilityDelta: -3 },
+  },
+  {
+    id: 'consumer_goods_directive',
+    name: 'Consumer Goods Directive',
+    description: 'Diverts a share of industrial capacity from heavy industry toward household goods.',
+    ideologyLean: 'reformist',
+    passEffect: { opinionDelta: 6, growthBonusDelta: -0.004 },
+    failEffect: { opinionDelta: -3 },
+  },
+  {
+    id: 'space_program_funding',
+    name: 'Space Program Funding',
+    description: 'Expands funding for orbital launch and cosmonaut programs.',
+    ideologyLean: 'nationalist',
+    passEffect: { debtDelta: 20, stabilityDelta: 4 },
+    failEffect: {},
+  },
 ];
 
 export const BILL_REGISTRY: Record<BillId, BillDef> = Object.fromEntries(registry.map((b) => [b.id, b]));
@@ -178,5 +256,23 @@ export const LEGISLATURE_CONFIGS: Record<string, LegislatureConfig> = {
     name: 'the Federal Parliament',
     intervalTurns: 3,
     billIds: ['orbital_infrastructure_act', 'ai_governance_directive', 'climate_adaptation_fund'],
+  },
+  GER: {
+    countryId: 'GER',
+    name: 'the Reichstag',
+    intervalTurns: 3,
+    billIds: ['naval_construction_bill', 'social_insurance_extension', 'grain_tariff_bill'],
+  },
+  RUS: {
+    countryId: 'RUS',
+    name: 'the Imperial Duma',
+    intervalTurns: 3,
+    billIds: ['land_reform_decree', 'railway_expansion_grant', 'duma_franchise_bill'],
+  },
+  USR: {
+    countryId: 'USR',
+    name: 'the Presidium',
+    intervalTurns: 3,
+    billIds: ['five_year_plan_targets', 'consumer_goods_directive', 'space_program_funding'],
   },
 };
