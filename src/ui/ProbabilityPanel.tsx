@@ -7,6 +7,11 @@ export function ProbabilityPanel() {
   return (
     <div className="rounded-lg bg-[#181a21] p-4 space-y-3">
       <h3 className="text-xs uppercase tracking-wide text-gray-500">Historical Probability Engine</h3>
+      {tracks.length === 0 && (
+        <p className="text-xs text-gray-600">
+          No historical benchmarks apply here — this far out, the future hasn't been written yet.
+        </p>
+      )}
       {tracks.map((track) => {
         const history = track.history;
         const previous = history.length > 1 ? history[history.length - 2].value : track.current;

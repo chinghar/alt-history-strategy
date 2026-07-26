@@ -4,6 +4,7 @@ import { advanceTurns } from '../../src/engine/core/turnEngine';
 import { recomputeAllProbabilities } from '../../src/engine/probability/historicalProbabilityEngine';
 import { scenario1836 } from '../../src/data/scenarios/1836';
 import { scenario431bce } from '../../src/data/scenarios/431bce';
+import { scenario2150 } from '../../src/data/scenarios/2150';
 
 describe('scenario isolation', () => {
   it('1836 only carries its own four trackers', () => {
@@ -44,9 +45,29 @@ describe('scenario isolation', () => {
     }
   });
 
+  it('2150 carries no Historical Probability trackers — nothing has happened yet', () => {
+    const world = buildWorld(scenario2150);
+    expect(Object.keys(world.probabilities)).toHaveLength(0);
+  });
+
+  it('2150 has a genuinely global 10-power roster including the Lunar Commonwealth', () => {
+    const world = buildWorld(scenario2150);
+    expect(Object.keys(world.countries)).toHaveLength(10);
+    for (const id of ['USA', 'CHN', 'EUF', 'IND', 'AFU', 'RUS', 'PPA', 'SAU', 'LUC', 'ARC']) {
+      expect(world.countries[id]).toBeDefined();
+    }
+  });
+
   it('stamps scenarioId onto WorldState for save-slot routing', () => {
     expect(buildWorld(scenario1836).scenarioId).toBe('1836');
     expect(buildWorld(scenario431bce).scenarioId).toBe('431bce');
+    expect(buildWorld(scenario2150).scenarioId).toBe('2150');
+  });
+
+  it('is deterministic for the 2150 scenario across many turns', () => {
+    const worldA = advanceTurns(buildWorld(scenario2150), 25);
+    const worldB = advanceTurns(buildWorld(scenario2150), 25);
+    expect(worldA).toEqual(worldB);
   });
 
   it('is deterministic for the 431 BCE scenario across many turns', () => {

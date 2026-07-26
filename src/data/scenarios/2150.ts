@@ -1,0 +1,228 @@
+import type { ScenarioDefinition } from '../../engine/core/worldFactory';
+
+/**
+ * 2150 CE: a speculative near-future extrapolated from real 2020s trends
+ * rather than invented from scratch — continued great-power rivalry
+ * (USA/China), deepening regional federations (the EU becoming a real
+ * federal European Federation, an African Union, a Pan-Pacific bloc, a
+ * Brazil-led South American Union), an opened Arctic, and the first
+ * genuinely off-world political entity, the Lunar Commonwealth. Ten powers,
+ * matching the "far future" end of the original "antiquity to the far
+ * future" pitch — 1836 and 431 BCE proved the engine isn't tied to one
+ * century; this proves it isn't tied to history having already happened.
+ *
+ * Deliberately carries zero Historical Probability trackers
+ * (outcomeTrackerIds: []) — that engine tracks whether a *real, settled*
+ * historical outcome still happens, and by definition nothing here has
+ * happened yet. ProbabilityPanel has an explicit fallback message for this
+ * case rather than showing nothing unexplained.
+ *
+ * Reuses the existing PrimaryIndustry categories (agrarian/industrial/trade)
+ * rather than inventing new ones — orbital extraction and cislunar shipping
+ * both read naturally as "trade," automated manufacturing as "industrial."
+ * Extends the legislature subgame to a third era (the European Federation's
+ * Federal Parliament) and the tech tree to fusion power, orbital elevators,
+ * and autonomous defense grids.
+ */
+export const scenario2150: ScenarioDefinition = {
+  id: '2150',
+  name: 'The World of 2150',
+  era: 'The Orbital Age',
+  startYear: 2150,
+  seed: 21500615,
+  outcomeTrackerIds: [],
+  techIds: [
+    'fusion_power',
+    'orbital_elevators',
+    'asteroid_mining',
+    'autonomous_defense_grids',
+    'directed_energy_systems',
+    'universal_basic_services',
+    'ai_governance_charter',
+    'climate_adaptation_infrastructure',
+  ],
+  countries: [
+    {
+      id: 'USA',
+      name: 'United States',
+      government: 'republic',
+      leaderName: 'The Federal Administration',
+      stability: 58,
+      ideology: 'liberal',
+      taxRate: 0.15,
+      unemployment: 10,
+      publicOpinion: 52,
+      militaryStrength: 150,
+      debt: 300,
+      tags: ['great_power'],
+      provinces: [
+        { id: 'USA-CORE', name: 'Continental Core', population: 320, economicOutput: 750, primaryIndustry: 'industrial', unrest: 12 },
+        { id: 'USA-ORB', name: 'Orbital Industries', population: 15, economicOutput: 350, primaryIndustry: 'trade', unrest: 8 },
+      ],
+    },
+    {
+      id: 'CHN',
+      name: 'Chinese Federation',
+      government: 'republic',
+      leaderName: 'The State Council',
+      stability: 62,
+      ideology: 'nationalist',
+      taxRate: 0.16,
+      unemployment: 8,
+      publicOpinion: 55,
+      militaryStrength: 200,
+      debt: 150,
+      tags: ['great_power'],
+      provinces: [
+        { id: 'CHN-COAST', name: 'Coastal Megalopolis', population: 400, economicOutput: 900, primaryIndustry: 'industrial', unrest: 10 },
+        { id: 'CHN-INT', name: 'Interior Development Zone', population: 300, economicOutput: 400, primaryIndustry: 'agrarian', unrest: 15 },
+      ],
+    },
+    {
+      id: 'EUF',
+      name: 'European Federation',
+      government: 'confederation',
+      leaderName: 'The Federal Commission',
+      stability: 55,
+      ideology: 'reformist',
+      taxRate: 0.2,
+      unemployment: 9,
+      publicOpinion: 54,
+      militaryStrength: 100,
+      debt: 400,
+      tags: ['great_power'],
+      provinces: [{ id: 'EUF-1', name: 'Western Europe', population: 250, economicOutput: 700, primaryIndustry: 'industrial', unrest: 10 }],
+    },
+    {
+      id: 'IND',
+      name: 'Indian Union',
+      government: 'republic',
+      leaderName: 'The Union Parliament',
+      stability: 52,
+      ideology: 'reformist',
+      taxRate: 0.13,
+      unemployment: 11,
+      publicOpinion: 50,
+      militaryStrength: 130,
+      debt: 200,
+      tags: ['great_power'],
+      provinces: [
+        { id: 'IND-GANG', name: 'Gangetic Corridor', population: 500, economicOutput: 650, primaryIndustry: 'industrial', unrest: 14 },
+        { id: 'IND-DEC', name: 'Deccan Plateau', population: 400, economicOutput: 350, primaryIndustry: 'agrarian', unrest: 12 },
+      ],
+    },
+    {
+      id: 'AFU',
+      name: 'African Union',
+      government: 'confederation',
+      leaderName: 'The Continental Assembly',
+      stability: 45,
+      ideology: 'reformist',
+      taxRate: 0.12,
+      unemployment: 15,
+      publicOpinion: 46,
+      militaryStrength: 60,
+      debt: 100,
+      tags: [],
+      provinces: [
+        { id: 'AFU-SAHEL', name: 'Sahel Development Belt', population: 600, economicOutput: 400, primaryIndustry: 'agrarian', unrest: 20 },
+        { id: 'AFU-EAST', name: 'East African Tech Corridor', population: 200, economicOutput: 350, primaryIndustry: 'trade', unrest: 15 },
+      ],
+    },
+    {
+      id: 'RUS',
+      name: 'Russian Federation',
+      government: 'empire',
+      leaderName: 'The Kremlin Council',
+      stability: 48,
+      ideology: 'traditionalist',
+      taxRate: 0.14,
+      unemployment: 9,
+      publicOpinion: 42,
+      militaryStrength: 140,
+      debt: 120,
+      tags: ['great_power'],
+      provinces: [
+        { id: 'RUS-W', name: 'Western Russia', population: 90, economicOutput: 300, primaryIndustry: 'industrial', unrest: 15 },
+        { id: 'RUS-ARC', name: 'Arctic Resource Zone', population: 10, economicOutput: 250, primaryIndustry: 'trade', unrest: 10 },
+      ],
+    },
+    {
+      id: 'PPA',
+      name: 'Pan-Pacific Alliance',
+      government: 'confederation',
+      leaderName: 'The Alliance Secretariat',
+      stability: 60,
+      ideology: 'liberal',
+      taxRate: 0.15,
+      unemployment: 6,
+      publicOpinion: 58,
+      militaryStrength: 110,
+      debt: 180,
+      tags: ['great_power'],
+      provinces: [{ id: 'PPA-1', name: 'Pacific Rim Core', population: 200, economicOutput: 600, primaryIndustry: 'industrial', unrest: 8 }],
+    },
+    {
+      id: 'SAU',
+      name: 'South American Union',
+      government: 'confederation',
+      leaderName: 'The Union Congress',
+      stability: 50,
+      ideology: 'reformist',
+      taxRate: 0.13,
+      unemployment: 10,
+      publicOpinion: 50,
+      militaryStrength: 70,
+      debt: 90,
+      tags: [],
+      provinces: [{ id: 'SAU-1', name: 'Amazonian Green Belt', population: 250, economicOutput: 350, primaryIndustry: 'trade', unrest: 14 }],
+    },
+    {
+      id: 'LUC',
+      name: 'Lunar Commonwealth',
+      government: 'republic',
+      leaderName: 'The Commonwealth Council',
+      stability: 65,
+      ideology: 'liberal',
+      taxRate: 0.1,
+      unemployment: 3,
+      publicOpinion: 60,
+      militaryStrength: 40,
+      debt: 30,
+      tags: ['new_state'],
+      provinces: [
+        { id: 'LUC-TRAN', name: 'Tranquility Settlements', population: 2, economicOutput: 150, primaryIndustry: 'industrial', unrest: 6 },
+        { id: 'LUC-HE3', name: 'Helium-3 Extraction Zone', population: 0.5, economicOutput: 100, primaryIndustry: 'trade', unrest: 5 },
+      ],
+    },
+    {
+      id: 'ARC',
+      name: 'Arctic Federation',
+      government: 'confederation',
+      leaderName: 'The Arctic Council',
+      stability: 58,
+      ideology: 'liberal',
+      taxRate: 0.16,
+      unemployment: 7,
+      publicOpinion: 55,
+      militaryStrength: 45,
+      debt: 60,
+      tags: ['new_state'],
+      provinces: [{ id: 'ARC-1', name: 'Northern Passage Corridor', population: 15, economicOutput: 200, primaryIndustry: 'trade', unrest: 8 }],
+    },
+  ],
+  relations: [
+    { a: 'USA', b: 'CHN', score: -20, treaties: [] },
+    { a: 'USA', b: 'EUF', score: 40, treaties: ['alliance'] },
+    { a: 'CHN', b: 'RUS', score: 30, treaties: [] },
+    { a: 'USA', b: 'PPA', score: 50, treaties: ['alliance'] },
+    { a: 'CHN', b: 'IND', score: -15, treaties: [] },
+    { a: 'EUF', b: 'AFU', score: 20, treaties: [] },
+    { a: 'RUS', b: 'ARC', score: 10, treaties: [] },
+    { a: 'USA', b: 'ARC', score: 25, treaties: [] },
+    { a: 'LUC', b: 'USA', score: 15, treaties: [] },
+    { a: 'LUC', b: 'CHN', score: 10, treaties: [] },
+    { a: 'SAU', b: 'USA', score: 10, treaties: [] },
+    { a: 'AFU', b: 'CHN', score: 15, treaties: [] },
+  ],
+};

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { countryFeatures, mapDimensions } from './worldGeo';
+import { countryFeatures, mapDimensions, type CountryFeature } from './worldGeo';
 import {
   gdpColor,
   ideologyColor,
@@ -16,6 +16,11 @@ function totalPopulation(world: WorldState, countryId: CountryId): number {
   const country = world.countries[countryId];
   if (!country) return 0;
   return country.provinceIds.reduce((sum, pid) => sum + (world.provinces[pid]?.population ?? 0), 0);
+}
+
+/** A geo feature can carry candidate ids from multiple eras; resolve to whichever one is actually in play. */
+function resolveCountryId(feature: CountryFeature, world: WorldState): CountryId | null {
+  return feature.countryIds.find((id) => id in world.countries) ?? null;
 }
 
 export function MapView() {
@@ -47,8 +52,8 @@ export function MapView() {
   }, [world.countries]);
 
   const hasMappedCountries = useMemo(
-    () => countryFeatures.some((f) => f.countryId !== null && f.countryId in world.countries),
-    [world.countries],
+    () => countryFeatures.some((f) => resolveCountryId(f, world) !== null),
+    [world],
   );
 
   function fillFor(countryId: CountryId | null): string {
@@ -77,20 +82,21 @@ export function MapView() {
         aria-label="World political map"
       >
         {countryFeatures.map((feature, i) => {
-          const isSelected = feature.countryId !== null && feature.countryId === selectedCountryId;
-          const isHovered = feature.countryId !== null && feature.countryId === hoveredId;
+          const countryId = resolveCountryId(feature, world);
+          const isSelected = countryId !== null && countryId === selectedCountryId;
+          const isHovered = countryId !== null && countryId === hoveredId;
           return (
             <path
               key={`${feature.geoName}-${i}`}
               d={feature.path}
-              fill={fillFor(feature.countryId)}
+              fill={fillFor(countryId)}
               stroke={isSelected ? '#f3f4f6' : NEUTRAL_BORDER}
               strokeWidth={isSelected ? 1.5 : 0.5}
               opacity={isHovered ? 0.85 : 1}
-              className={feature.countryId ? 'cursor-pointer transition-opacity' : undefined}
-              onMouseEnter={() => feature.countryId && setHoveredId(feature.countryId)}
+              className={countryId ? 'cursor-pointer transition-opacity' : undefined}
+              onMouseEnter={() => countryId && setHoveredId(countryId)}
               onMouseLeave={() => setHoveredId(null)}
-              onClick={() => feature.countryId && selectCountry(feature.countryId)}
+              onClick={() => countryId && selectCountry(countryId)}
             />
           );
         })}

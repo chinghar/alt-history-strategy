@@ -35,10 +35,27 @@ const COUNTRY_GEO_NAME: Record<CountryId, string> = {
   PER: 'Iran',
   SIC: 'Italy',
   MAR: 'Morocco',
+  // 2150 — supranational blocs approximated by their most populous/central
+  // member, same simplification already used for pre-modern polities.
+  // LUC (Lunar Commonwealth) is deliberately unmapped: it has no Earth
+  // geography to render.
+  EUF: 'France',
+  IND: 'India',
+  AFU: 'Nigeria',
+  PPA: 'Japan',
+  SAU: 'Brazil',
+  ARC: 'Greenland',
 };
 
 export interface CountryFeature {
-  countryId: CountryId | null;
+  /**
+   * Every CountryId (across every scenario) that claims this geoName —
+   * plural because different eras reuse the same modern polygon as their
+   * closest approximation (1836's France and 2150's European Federation
+   * both map to "France", for instance). Callers resolve to the one that
+   * actually exists in the active WorldState.
+   */
+  countryIds: CountryId[];
   geoName: string;
   path: string;
 }
@@ -48,20 +65,23 @@ const worldFeatures = feature(
   (worldTopology as never as { objects: { countries: never } }).objects.countries,
 ) as unknown as FeatureCollection<Geometry, { name: string }>;
 
-const geoNameToCountryId = new Map<string, CountryId>(
-  Object.entries(COUNTRY_GEO_NAME).map(([id, name]) => [name, id]),
-);
+const geoNameToCountryIds = new Map<string, CountryId[]>();
+for (const [id, name] of Object.entries(COUNTRY_GEO_NAME)) {
+  const existing = geoNameToCountryIds.get(name);
+  if (existing) existing.push(id);
+  else geoNameToCountryIds.set(name, [id]);
+}
 
 const projection = geoNaturalEarth1().fitSize([980, 500], worldFeatures);
 const pathGenerator = geoPath(projection);
 
-/** All land features as SVG path data, tagged with our CountryId where we simulate that country. */
+/** All land features as SVG path data, tagged with every CountryId (across all scenarios) that could render here. */
 export const countryFeatures: CountryFeature[] = worldFeatures.features
   .map((f) => {
     const path = pathGenerator(f);
     if (!path) return null;
     return {
-      countryId: geoNameToCountryId.get(f.properties.name) ?? null,
+      countryIds: geoNameToCountryIds.get(f.properties.name) ?? [],
       geoName: f.properties.name,
       path,
     };

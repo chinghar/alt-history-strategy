@@ -118,6 +118,32 @@ const registry: BillDef[] = [
     passEffect: { taxRateDelta: 0.02, debtDelta: -10 },
     failEffect: { opinionDelta: -2 },
   },
+
+  // --- European Federal Parliament (2150) ---
+  {
+    id: 'orbital_infrastructure_act',
+    name: 'Orbital Infrastructure Investment Act',
+    description: 'Federal funding for cislunar shipyards and launch infrastructure.',
+    ideologyLean: 'nationalist',
+    passEffect: { growthBonusDelta: 0.01, debtDelta: 30 },
+    failEffect: { opinionDelta: -2 },
+  },
+  {
+    id: 'ai_governance_directive',
+    name: 'AI Governance Directive',
+    description: 'Binding federal rules on autonomous systems and algorithmic decision-making.',
+    ideologyLean: 'reformist',
+    passEffect: { stabilityDelta: 6, growthBonusDelta: -0.003 },
+    failEffect: { opinionDelta: -3 },
+  },
+  {
+    id: 'climate_adaptation_fund',
+    name: 'Climate Adaptation Fund',
+    description: 'Federal funding for coastal defenses, managed retreat, and resilient agriculture.',
+    ideologyLean: 'liberal',
+    passEffect: { stabilityDelta: 5, debtDelta: 20 },
+    failEffect: { opinionDelta: -2 },
+  },
 ];
 
 export const BILL_REGISTRY: Record<BillId, BillDef> = Object.fromEntries(registry.map((b) => [b.id, b]));
@@ -146,5 +172,11 @@ export const LEGISLATURE_CONFIGS: Record<string, LegislatureConfig> = {
     name: 'the Athenian Assembly',
     intervalTurns: 3,
     billIds: ['naval_expansion_decree', 'grain_subsidy_decree', 'war_tax_decree'],
+  },
+  EUF: {
+    countryId: 'EUF',
+    name: 'the Federal Parliament',
+    intervalTurns: 3,
+    billIds: ['orbital_infrastructure_act', 'ai_governance_directive', 'climate_adaptation_fund'],
   },
 };
