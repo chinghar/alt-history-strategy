@@ -6,10 +6,10 @@ import { scenario1836 } from '../../src/data/scenarios/1836';
 import { scenario431bce } from '../../src/data/scenarios/431bce';
 
 describe('scenario isolation', () => {
-  it('1836 only carries its own three trackers', () => {
+  it('1836 only carries its own four trackers', () => {
     const world = buildWorld(scenario1836);
     expect(Object.keys(world.probabilities).sort()).toEqual(
-      ['german-unification', 'american-civil-war', 'ottoman-decline'].sort(),
+      ['german-unification', 'american-civil-war', 'ottoman-decline', 'opium-war-british-victory'].sort(),
     );
   });
 
@@ -25,6 +25,14 @@ describe('scenario isolation', () => {
     for (const track of Object.values(world.probabilities)) {
       expect(track.current).toBeGreaterThan(0);
       expect(track.current).toBeLessThan(1);
+    }
+  });
+
+  it('1836 has a genuinely global 22-country roster', () => {
+    const world = buildWorld(scenario1836);
+    expect(Object.keys(world.countries)).toHaveLength(22);
+    for (const id of ['CHN', 'JPN', 'BRA', 'PER', 'SIC', 'MAR']) {
+      expect(world.countries[id]).toBeDefined();
     }
   });
 

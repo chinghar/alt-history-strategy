@@ -29,6 +29,12 @@ const COUNTRY_GEO_NAME: Record<CountryId, string> = {
   GRC: 'Greece',
   MEX: 'Mexico',
   EGY: 'Egypt',
+  CHN: 'China',
+  JPN: 'Japan',
+  BRA: 'Brazil',
+  PER: 'Iran',
+  SIC: 'Italy',
+  MAR: 'Morocco',
 };
 
 export interface CountryFeature {

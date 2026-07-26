@@ -1,16 +1,21 @@
 import type { ScenarioDefinition } from '../../engine/core/worldFactory';
 
 /**
- * Curated 1836 roster: 16 sovereign powers with hand-authored starting
+ * Curated 1836 roster: 22 sovereign powers with hand-authored starting
  * conditions. Not the full ~190-country world — see the project plan's
- * "Explicitly deferred" section. GDP/population/military figures are
- * illustrative, not academically calibrated; what matters is that they're
- * internally consistent and move believably from here.
+ * "Explicitly deferred" section — but genuinely global rather than
+ * Europe-and-the-Americas-only: East Asia (Qing China, Tokugawa Japan),
+ * the Middle East (Qajar Persia alongside the Ottomans), North Africa
+ * (Morocco), and South America (the Empire of Brazil) are all represented.
+ * GDP/population/military figures are illustrative, not academically
+ * calibrated; what matters is that they're internally consistent and move
+ * believably from here.
  *
- * Chosen so all three Historical Probability trackers have real signal from
+ * Chosen so all four Historical Probability trackers have real signal from
  * turn one: PRU/AUT rivalry (German Unification), USA industrial/slave-
- * agrarian provinces (American Civil War), and OTT's fiscal/military
- * weakness plus the active Egyptian revolt (Ottoman Decline).
+ * agrarian provinces (American Civil War), OTT's fiscal/military weakness
+ * plus the active Egyptian revolt (Ottoman Decline), and GBR's naval edge
+ * plus the brewing Canton trade dispute (Opium War).
  */
 export const scenario1836: ScenarioDefinition = {
   id: '1836',
@@ -18,7 +23,7 @@ export const scenario1836: ScenarioDefinition = {
   era: 'Industrial Revolution',
   startYear: 1836,
   seed: 18360101,
-  outcomeTrackerIds: ['german-unification', 'american-civil-war', 'ottoman-decline'],
+  outcomeTrackerIds: ['german-unification', 'american-civil-war', 'ottoman-decline', 'opium-war-british-victory'],
   techIds: [
     'railways',
     'telegraph',
@@ -294,6 +299,102 @@ export const scenario1836: ScenarioDefinition = {
       tags: ['ottoman_vassal'],
       provinces: [{ id: 'EGY-1', name: 'Egypt', population: 4, economicOutput: 110, primaryIndustry: 'agrarian', unrest: 15 }],
     },
+    {
+      id: 'CHN',
+      name: 'Qing China',
+      government: 'empire',
+      leaderName: 'Daoguang Emperor',
+      stability: 55,
+      ideology: 'traditionalist',
+      taxRate: 0.1,
+      unemployment: 8,
+      publicOpinion: 50,
+      militaryStrength: 60,
+      debt: 20,
+      // Deliberately not tagged 'great_power' — that tag drives the Ottoman
+      // Decline tracker's "rival Concert of Europe powers" comparison, and
+      // Qing China wasn't part of that specific rivalry.
+      tags: [],
+      provinces: [
+        { id: 'CHN-JN', name: 'Jiangnan', population: 60, economicOutput: 400, primaryIndustry: 'trade', unrest: 15 },
+        { id: 'CHN-IN', name: 'Interior China', population: 340, economicOutput: 500, primaryIndustry: 'agrarian', unrest: 20 },
+      ],
+    },
+    {
+      id: 'JPN',
+      name: 'Tokugawa Japan',
+      government: 'absolute_monarchy',
+      leaderName: 'Shogun Tokugawa Ieyoshi',
+      stability: 60,
+      ideology: 'traditionalist',
+      taxRate: 0.12,
+      unemployment: 6,
+      publicOpinion: 55,
+      militaryStrength: 30,
+      debt: 5,
+      tags: [],
+      provinces: [{ id: 'JPN-1', name: 'Japan', population: 30, economicOutput: 150, primaryIndustry: 'agrarian', unrest: 10 }],
+    },
+    {
+      id: 'BRA',
+      name: 'Empire of Brazil',
+      government: 'constitutional_monarchy',
+      leaderName: 'Pedro II (regency)',
+      stability: 45,
+      ideology: 'conservative',
+      taxRate: 0.11,
+      unemployment: 10,
+      publicOpinion: 48,
+      militaryStrength: 35,
+      debt: 25,
+      tags: ['new_state'],
+      provinces: [{ id: 'BRA-1', name: 'Brazil', population: 4, economicOutput: 130, primaryIndustry: 'slave_agrarian', unrest: 20 }],
+    },
+    {
+      id: 'PER',
+      name: 'Qajar Persia',
+      government: 'absolute_monarchy',
+      leaderName: 'Mohammad Shah Qajar',
+      stability: 40,
+      ideology: 'traditionalist',
+      taxRate: 0.12,
+      unemployment: 12,
+      publicOpinion: 40,
+      militaryStrength: 40,
+      debt: 30,
+      tags: ['declining_power'],
+      provinces: [{ id: 'PER-1', name: 'Persia', population: 10, economicOutput: 160, primaryIndustry: 'agrarian', unrest: 22 }],
+    },
+    {
+      id: 'SIC',
+      name: 'Kingdom of the Two Sicilies',
+      government: 'absolute_monarchy',
+      leaderName: 'Ferdinand II',
+      stability: 50,
+      ideology: 'conservative',
+      taxRate: 0.13,
+      unemployment: 11,
+      publicOpinion: 45,
+      militaryStrength: 35,
+      debt: 15,
+      tags: [],
+      provinces: [{ id: 'SIC-1', name: 'Naples & Sicily', population: 7, economicOutput: 140, primaryIndustry: 'agrarian', unrest: 18 }],
+    },
+    {
+      id: 'MAR',
+      name: 'Morocco',
+      government: 'absolute_monarchy',
+      leaderName: 'Abd al-Rahman',
+      stability: 50,
+      ideology: 'traditionalist',
+      taxRate: 0.1,
+      unemployment: 10,
+      publicOpinion: 48,
+      militaryStrength: 25,
+      debt: 8,
+      tags: [],
+      provinces: [{ id: 'MAR-1', name: 'Morocco', population: 5, economicOutput: 100, primaryIndustry: 'trade', unrest: 14 }],
+    },
   ],
   relations: [
     { a: 'GBR', b: 'FRA', score: 25, treaties: [] },
@@ -313,5 +414,13 @@ export const scenario1836: ScenarioDefinition = {
     { a: 'USA', b: 'GBR', score: 15, treaties: [] },
     { a: 'MEX', b: 'USA', score: -10, treaties: [] },
     { a: 'GRC', b: 'OTT', score: -80, treaties: [] },
+    { a: 'GBR', b: 'CHN', score: -20, treaties: [] },
+    { a: 'CHN', b: 'JPN', score: 10, treaties: [] },
+    { a: 'RUS', b: 'CHN', score: -10, treaties: [] },
+    { a: 'GBR', b: 'BRA', score: 20, treaties: [] },
+    { a: 'ESP', b: 'SIC', score: 10, treaties: [] },
+    { a: 'FRA', b: 'MAR', score: -10, treaties: [] },
+    { a: 'RUS', b: 'PER', score: -20, treaties: [] },
+    { a: 'GBR', b: 'PER', score: 10, treaties: [] },
   ],
 };
