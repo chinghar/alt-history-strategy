@@ -6,6 +6,7 @@
 export type CountryId = string;
 export type ProvinceId = string;
 export type OutcomeId = string;
+export type TechId = string;
 
 export type GovernmentType =
   | 'absolute_monarchy'
@@ -64,6 +65,27 @@ export interface Country {
    * country IDs into every engine (e.g. "german_state", "great_power").
    */
    tags: string[];
+  researchPoints: number;
+  unlockedTechIds: TechId[];
+  currentResearchId: TechId | null;
+  /** Permanent bonuses accumulated from unlocked technologies. */
+  techGrowthBonus: number;
+  techMilitaryBonus: number;
+}
+
+export type TechCategory = 'economic' | 'military' | 'political';
+export type TechEffectKind = 'growth_bonus' | 'military_bonus' | 'stability_boost';
+
+export interface TechDef {
+  id: TechId;
+  name: string;
+  category: TechCategory;
+  cost: number;
+  effectKind: TechEffectKind;
+  /** growth_bonus/military_bonus: permanent additive bonus. stability_boost: one-time add to stability + opinion. */
+  effectValue: number;
+  description: string;
+  prerequisiteId?: TechId;
 }
 
 export interface Relation {
@@ -145,6 +167,8 @@ export interface WorldState {
   probabilities: Record<OutcomeId, ProbabilityTrack>;
   /** Which registered Historical Probability trackers apply to this scenario. */
   activeOutcomeTrackerIds: OutcomeId[];
+  /** Which entries in the global tech registry are researchable in this scenario/era. */
+  availableTechIds: TechId[];
 }
 
 /** Shape every simulation engine's per-turn tick conforms to. */

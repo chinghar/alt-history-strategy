@@ -15,7 +15,7 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
     const upkeep = (country.militaryStrength / 100) * country.gdp * 0.005;
     const debt = Math.max(0, country.debt + upkeep);
 
-    const targetStrength = country.gdp * country.taxRate * 0.5;
+    const targetStrength = country.gdp * country.taxRate * 0.5 + country.techMilitaryBonus;
     const drift = (targetStrength - country.militaryStrength) * 0.03 + (rng.next() - 0.5) * 0.5;
     const militaryStrength = clamp(country.militaryStrength + drift, 0, 1000);
 

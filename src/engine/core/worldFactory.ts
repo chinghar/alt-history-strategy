@@ -9,6 +9,7 @@ import {
   type Province,
   type ProvinceId,
   type Relation,
+  type TechId,
   type TreatyType,
   type WorldState,
 } from './types';
@@ -56,6 +57,8 @@ export interface ScenarioDefinition {
   relations: ScenarioRelationDef[];
   /** Which Historical Probability trackers are relevant to this scenario's timeframe. */
   outcomeTrackerIds: OutcomeId[];
+  /** Which entries in the global tech registry are researchable in this scenario's era. */
+  techIds: TechId[];
 }
 
 /** Builds the initial WorldState from a hand-authored scenario definition. */
@@ -97,6 +100,11 @@ export function buildWorld(scenario: ScenarioDefinition): WorldState {
       publicOpinion: c.publicOpinion,
       militaryStrength: c.militaryStrength,
       tags: c.tags,
+      researchPoints: 0,
+      unlockedTechIds: [],
+      currentResearchId: null,
+      techGrowthBonus: 0,
+      techMilitaryBonus: 0,
     };
   }
 
@@ -132,6 +140,7 @@ export function buildWorld(scenario: ScenarioDefinition): WorldState {
     ],
     probabilities: {},
     activeOutcomeTrackerIds: scenario.outcomeTrackerIds,
+    availableTechIds: scenario.techIds,
   };
 
   world = recomputeAllProbabilities(world);

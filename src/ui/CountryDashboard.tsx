@@ -1,6 +1,7 @@
 import { useGameStore } from '../state/gameStore';
 import { findWarBetween, getCountryRelations, getOtherParty } from '../engine/core/queries';
-import type { CountryId, TreatyType } from '../engine/core/types';
+import { clamp, type Country, type CountryId, type TreatyType } from '../engine/core/types';
+import { TECH_REGISTRY } from '../engine/research/techs';
 
 const GOVERNMENT_LABEL: Record<string, string> = {
   absolute_monarchy: 'Absolute Monarchy',
@@ -126,6 +127,77 @@ function DiplomacyControls({ playerCountryId }: { playerCountryId: CountryId }) 
   );
 }
 
+function ResearchControls({ playerCountryId }: { playerCountryId: CountryId }) {
+  const world = useGameStore((s) => s.world);
+  const setResearchFocus = useGameStore((s) => s.setResearchFocus);
+  const country = world.countries[playerCountryId];
+
+  const current = country.currentResearchId ? TECH_REGISTRY[country.currentResearchId] : null;
+  const progress = current ? clamp(country.researchPoints / current.cost, 0, 1) : 0;
+
+  const available = world.availableTechIds
+    .map((id) => TECH_REGISTRY[id])
+    .filter(
+      (tech) =>
+        !country.unlockedTechIds.includes(tech.id) &&
+        (!tech.prerequisiteId || country.unlockedTechIds.includes(tech.prerequisiteId)),
+    );
+
+  return (
+    <div>
+      <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-1">Research</h3>
+      {current ? (
+        <div className="mb-2">
+          <div className="flex justify-between text-xs text-gray-300">
+            <span>{current.name}</span>
+            <span className="tabular-nums">{Math.round(progress * 100)}%</span>
+          </div>
+          <div className="h-1.5 rounded-full bg-white/5 mt-1 overflow-hidden">
+            <div className="h-full bg-[#199e70]" style={{ width: `${progress * 100}%` }} />
+          </div>
+        </div>
+      ) : (
+        <p className="text-xs text-gray-600 mb-2">No active research — choose a focus below.</p>
+      )}
+      <div className="space-y-1">
+        {available.map((tech) => (
+          <button
+            key={tech.id}
+            onClick={() => setResearchFocus(tech.id)}
+            disabled={tech.id === country.currentResearchId}
+            className={`w-full text-left px-2 py-1.5 rounded text-xs border ${
+              tech.id === country.currentResearchId
+                ? 'bg-[#199e70]/15 border-[#199e70]/50 text-gray-200'
+                : 'border-white/10 text-gray-400 hover:text-gray-200 hover:border-white/30'
+            }`}
+          >
+            <div className="flex justify-between">
+              <span className="font-medium">{tech.name}</span>
+              <span className="tabular-nums text-gray-500">{tech.cost} RP</span>
+            </div>
+            <div className="text-gray-600">{tech.description}</div>
+          </button>
+        ))}
+        {available.length === 0 && (
+          <p className="text-xs text-gray-600">All available technologies researched.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TechnologySummary({ country }: { country: Country }) {
+  if (country.unlockedTechIds.length === 0) return null;
+  return (
+    <div>
+      <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-1">Technology</h3>
+      <p className="text-xs text-gray-400">
+        {country.unlockedTechIds.map((id) => TECH_REGISTRY[id]?.name ?? id).join(', ')}
+      </p>
+    </div>
+  );
+}
+
 function NationList() {
   const world = useGameStore((s) => s.world);
   const playerCountryId = useGameStore((s) => s.playerCountryId);
@@ -220,6 +292,12 @@ export function CountryDashboard() {
           })}
         </div>
       </div>
+
+      {isPlayerCountry ? (
+        <ResearchControls playerCountryId={country.id} />
+      ) : (
+        <TechnologySummary country={country} />
+      )}
 
       {isPlayerCountry ? (
         <DiplomacyControls playerCountryId={country.id} />

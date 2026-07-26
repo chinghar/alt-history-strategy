@@ -5,6 +5,7 @@ import { advanceTurn } from '../engine/core/turnEngine';
 import { setTaxRate as applyTaxRate } from '../engine/economy/economyEngine';
 import { setTreaty as applyTreaty } from '../engine/diplomacy/diplomacyEngine';
 import { declareWar as applyDeclareWar, suePeace as applySuePeace } from '../engine/warfare/warfareEngine';
+import { setResearchFocus as applySetResearchFocus } from '../engine/research/researchEngine';
 import { scenarios, DEFAULT_SCENARIO_ID } from '../data/scenarios';
 
 export type MapOverlay = 'political' | 'gdp' | 'ideology';
@@ -30,6 +31,7 @@ interface GameStore {
   toggleTreaty: (otherId: CountryId, treaty: TreatyType, active: boolean) => void;
   declareWar: (otherId: CountryId) => void;
   suePeace: () => void;
+  setResearchFocus: (techId: string) => void;
   loadScenario: (scenarioId: string) => void;
   resetScenario: () => void;
   openPicker: () => void;
@@ -171,6 +173,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const text = `${applied.countries[playerCountryId].name} sues for peace, ending the war.`;
     const nextWorld = withPlayerEvent(applied, text, 'peace_sued', [playerCountryId], 'major');
+    persist(nextWorld);
+    set({ world: nextWorld });
+  },
+
+  setResearchFocus: (techId) => {
+    const { world, playerCountryId } = get();
+    if (!playerCountryId) return;
+    const nextWorld = applySetResearchFocus(world, playerCountryId, techId);
     persist(nextWorld);
     set({ world: nextWorld });
   },

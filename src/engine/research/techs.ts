@@ -1,0 +1,153 @@
+import type { TechDef, TechId } from '../core/types';
+
+/**
+ * Global tech registry, shared across scenarios the way outcome trackers
+ * are — each scenario just references a subset via
+ * ScenarioDefinition.techIds. Costs are in "research points", which
+ * researchEngine accrues from a country's GDP each turn, so cost should
+ * scale roughly with the era's GDP figures (1836's are ~10x antiquity's).
+ */
+const registry: TechDef[] = [
+  // --- 1836 ---
+  {
+    id: 'railways',
+    name: 'Railways',
+    category: 'economic',
+    cost: 800,
+    effectKind: 'growth_bonus',
+    effectValue: 0.01,
+    description: 'Rail networks slash transport costs and knit the internal market together.',
+  },
+  {
+    id: 'telegraph',
+    name: 'Telegraph',
+    category: 'economic',
+    cost: 500,
+    effectKind: 'growth_bonus',
+    effectValue: 0.006,
+    description: 'Instant communication accelerates trade and administration.',
+  },
+  {
+    id: 'steel_production',
+    name: 'Steel Production',
+    category: 'economic',
+    cost: 900,
+    effectKind: 'growth_bonus',
+    effectValue: 0.012,
+    description: 'Bessemer-process steel underpins the next generation of industry.',
+    prerequisiteId: 'railways',
+  },
+  {
+    id: 'rifled_muskets',
+    name: 'Rifled Muskets',
+    category: 'military',
+    cost: 600,
+    effectKind: 'military_bonus',
+    effectValue: 15,
+    description: 'Rifled barrels dramatically improve infantry firepower and range.',
+  },
+  {
+    id: 'ironclad_warships',
+    name: 'Ironclad Warships',
+    category: 'military',
+    cost: 1000,
+    effectKind: 'military_bonus',
+    effectValue: 25,
+    description: 'Steam-powered armored warships render wooden fleets obsolete.',
+  },
+  {
+    id: 'universal_male_suffrage',
+    name: 'Universal Male Suffrage',
+    category: 'political',
+    cost: 700,
+    effectKind: 'stability_boost',
+    effectValue: 15,
+    description: "Expanding the franchise defuses revolutionary pressure at the cost of the old order's grip on power.",
+  },
+  {
+    id: 'public_education',
+    name: 'Public Education',
+    category: 'political',
+    cost: 550,
+    effectKind: 'stability_boost',
+    effectValue: 10,
+    description: 'State-funded schools raise literacy and civic loyalty.',
+  },
+  {
+    id: 'factory_act_reforms',
+    name: 'Factory Act Reforms',
+    category: 'political',
+    cost: 450,
+    effectKind: 'stability_boost',
+    effectValue: 8,
+    description: 'Limiting the worst excesses of industrial labor eases unrest without threatening the treasury.',
+  },
+
+  // --- 431 BCE ---
+  {
+    id: 'trireme_design',
+    name: 'Trireme Design',
+    category: 'military',
+    cost: 400,
+    effectKind: 'military_bonus',
+    effectValue: 12,
+    description: 'Faster, more maneuverable warships tip naval battles.',
+  },
+  {
+    id: 'hoplite_phalanx_reform',
+    name: 'Hoplite Phalanx Reform',
+    category: 'military',
+    cost: 350,
+    effectKind: 'military_bonus',
+    effectValue: 10,
+    description: 'Refined formation tactics multiply infantry effectiveness.',
+  },
+  {
+    id: 'siege_engines',
+    name: 'Siege Engines',
+    category: 'military',
+    cost: 500,
+    effectKind: 'military_bonus',
+    effectValue: 15,
+    description: 'Battering rams and early siege towers threaten even walled cities.',
+  },
+  {
+    id: 'currency_standardization',
+    name: 'Currency Standardization',
+    category: 'economic',
+    cost: 300,
+    effectKind: 'growth_bonus',
+    effectValue: 0.008,
+    description: 'A stable, trusted coinage lowers the friction of every transaction.',
+  },
+  {
+    id: 'maritime_trade_networks',
+    name: 'Maritime Trade Networks',
+    category: 'economic',
+    cost: 450,
+    effectKind: 'growth_bonus',
+    effectValue: 0.01,
+    description: 'Formalized trade routes multiply the reach of merchant fleets.',
+    prerequisiteId: 'currency_standardization',
+  },
+  {
+    id: 'democratic_reform',
+    name: 'Democratic Reform',
+    category: 'political',
+    cost: 400,
+    effectKind: 'stability_boost',
+    effectValue: 15,
+    description: 'Broadening political participation channels popular anger into the assembly instead of the streets.',
+  },
+  {
+    id: 'public_grain_stores',
+    name: 'Public Grain Stores',
+    category: 'political',
+    cost: 300,
+    effectKind: 'stability_boost',
+    effectValue: 8,
+    description: "State grain reserves blunt famine's political sting.",
+  },
+];
+
+export const TECH_REGISTRY: Record<TechId, TechDef> = Object.fromEntries(registry.map((t) => [t.id, t]));
