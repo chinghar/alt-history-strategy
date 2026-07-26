@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGameStore } from '../state/gameStore';
 import { formatYear } from './formatYear';
 import { TECH_REGISTRY } from '../engine/research/techs';
+import { getDivergenceVerdict, VERDICT_LABEL, type DivergenceVerdict } from '../engine/probability/divergence';
 
 const GOVERNMENT_LABEL: Record<string, string> = {
   absolute_monarchy: 'Absolute Monarchy',
@@ -11,13 +12,52 @@ const GOVERNMENT_LABEL: Record<string, string> = {
   confederation: 'Confederation',
 };
 
+const VERDICT_COLOR: Record<DivergenceVerdict, string> = {
+  'already-happened': 'border-emerald-500/40 text-emerald-300',
+  'on-track': 'border-[#3987e5]/40 text-[#8fb8ec]',
+  uncertain: 'border-amber-500/40 text-amber-300',
+  diverging: 'border-orange-500/40 text-orange-300',
+  averted: 'border-red-500/40 text-red-300',
+};
+
+function HistoryComparedPage() {
+  const probabilities = useGameStore((s) => s.world.probabilities);
+  const tracks = Object.values(probabilities);
+
+  if (tracks.length === 0) {
+    return (
+      <p className="text-sm text-gray-600">
+        No historical benchmarks apply to this era — nothing here has happened yet to compare against.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {tracks.map((track) => {
+        const verdict = getDivergenceVerdict(track.current);
+        return (
+          <div key={track.id} className={`border-l-2 pl-3 ${VERDICT_COLOR[verdict]}`}>
+            <div className="text-sm text-gray-100 font-medium">{track.label}</div>
+            <div className="text-xs text-gray-500 mt-0.5">Real history: {track.realWorldReference}</div>
+            <div className="text-xs mt-1">
+              <span className="tabular-nums font-medium">{Math.round(track.current * 100)}%</span>{' '}
+              <span>{VERDICT_LABEL[verdict]}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function Encyclopedia() {
   const world = useGameStore((s) => s.world);
   const closeEncyclopedia = useGameStore((s) => s.closeEncyclopedia);
   const [selected, setSelected] = useState<string>('world');
 
   const countries = Object.values(world.countries).sort((a, b) => a.name.localeCompare(b.name));
-  const country = selected === 'world' ? null : world.countries[selected];
+  const country = selected === 'world' || selected === 'history' ? null : world.countries[selected];
 
   const entries = [...world.timeline]
     .filter((entry) => selected === 'world' || entry.countryIds.includes(selected))
@@ -34,6 +74,14 @@ export function Encyclopedia() {
           }`}
         >
           World Overview
+        </button>
+        <button
+          onClick={() => setSelected('history')}
+          className={`text-left text-sm px-2 py-1.5 rounded ${
+            selected === 'history' ? 'bg-[#3987e5]/15 text-[#3987e5]' : 'text-gray-300 hover:bg-white/5'
+          }`}
+        >
+          History Compared
         </button>
         <div className="h-px bg-white/5 my-2" />
         {countries.map((c) => (
@@ -52,7 +100,9 @@ export function Encyclopedia() {
       <div className="flex-1 flex flex-col min-w-0 bg-[#12141a] rounded-lg overflow-hidden">
         <div className="flex items-start justify-between px-6 py-4 border-b border-white/5">
           <div>
-            <h1 className="text-xl font-semibold text-gray-100">{country ? country.name : 'World Overview'}</h1>
+            <h1 className="text-xl font-semibold text-gray-100">
+              {selected === 'history' ? 'History Compared' : country ? country.name : 'World Overview'}
+            </h1>
             {country ? (
               <p className="text-xs text-gray-500 mt-1">
                 {GOVERNMENT_LABEL[country.government.type]} · {country.government.leaderName} ·{' '}
@@ -64,6 +114,8 @@ export function Encyclopedia() {
                   </>
                 )}
               </p>
+            ) : selected === 'history' ? (
+              <p className="text-xs text-gray-500 mt-1">How your timeline has diverged from what really happened</p>
             ) : (
               <p className="text-xs text-gray-500 mt-1">
                 {formatYear(world.date.year)} · {entries.length} recorded events across {countries.length} powers
@@ -79,15 +131,21 @@ export function Encyclopedia() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
-          {entries.length === 0 && (
-            <p className="text-sm text-gray-600">No recorded history yet — advance a few turns.</p>
+          {selected === 'history' ? (
+            <HistoryComparedPage />
+          ) : (
+            <>
+              {entries.length === 0 && (
+                <p className="text-sm text-gray-600">No recorded history yet — advance a few turns.</p>
+              )}
+              {entries.map((entry) => (
+                <div key={entry.id} className="border-l-2 border-white/10 pl-3">
+                  <div className="text-xs text-gray-500 tabular-nums">{formatYear(entry.year)}</div>
+                  <div className="text-sm text-gray-200">{entry.description}</div>
+                </div>
+              ))}
+            </>
           )}
-          {entries.map((entry) => (
-            <div key={entry.id} className="border-l-2 border-white/10 pl-3">
-              <div className="text-xs text-gray-500 tabular-nums">{formatYear(entry.year)}</div>
-              <div className="text-sm text-gray-200">{entry.description}</div>
-            </div>
-          ))}
         </div>
       </div>
     </div>
