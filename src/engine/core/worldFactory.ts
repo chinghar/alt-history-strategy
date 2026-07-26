@@ -112,6 +112,7 @@ export function buildWorld(scenario: ScenarioDefinition): WorldState {
     countries,
     provinces,
     relations,
+    wars: {},
     eventLog: [],
     timeline: [
       {

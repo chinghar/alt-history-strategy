@@ -1,5 +1,10 @@
-import { clamp, relationKey, type EngineResult, type GameEvent, type Rng, type WorldState } from '../core/types';
-import { getCountryRelations, getOtherParty } from '../core/queries';
+import { relationKey, type EngineResult, type GameEvent, type Rng, type WorldState, clamp } from '../core/types';
+import { getCountryRelations, getOtherParty, isAtWar } from '../core/queries';
+import { declareWar } from '../warfare/warfareEngine';
+
+const WAR_RELATION_THRESHOLD = -80;
+const WAR_STRENGTH_RATIO = 1.4;
+const WAR_DECLARATION_CHANCE = 0.04;
 
 /**
  * Rule-based decisions for every AI-controlled country, run once per turn.
@@ -62,5 +67,40 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
     }
   }
 
-  return { world: { ...world, countries, relations }, events };
+  // Second pass: war declarations, evaluated against turn-start strength
+  // figures but applied sequentially so allies dragged into an earlier
+  // declaration this turn are correctly considered already-at-war.
+  let warWorld: WorldState = { ...world, countries, relations };
+
+  for (const country of Object.values(world.countries)) {
+    if (country.isPlayerControlled || isAtWar(warWorld, country.id)) continue;
+
+    for (const relation of getCountryRelations(world, country.id)) {
+      const otherId = getOtherParty(relation, country.id);
+      if (country.id > otherId && !world.countries[otherId]?.isPlayerControlled) continue;
+      if (relation.treaties.includes('alliance')) continue;
+      if (isAtWar(warWorld, otherId)) continue;
+
+      const other = world.countries[otherId];
+      const strengthRatio = other.militaryStrength > 0 ? country.militaryStrength / other.militaryStrength : 999;
+
+      if (relation.score < WAR_RELATION_THRESHOLD && strengthRatio > WAR_STRENGTH_RATIO && rng.next() < WAR_DECLARATION_CHANCE) {
+        const before = warWorld;
+        warWorld = declareWar(warWorld, country.id, otherId);
+        if (warWorld !== before) {
+          events.push({
+            id: `war-declared-${country.id}-${otherId}-${world.turn}`,
+            turn: world.turn,
+            year: world.date.year,
+            type: 'war_declared',
+            countryIds: [country.id, otherId],
+            text: `${country.name} declares war on ${other.name}.`,
+            severity: 'major',
+          });
+        }
+      }
+    }
+  }
+
+  return { world: warWorld, events };
 }

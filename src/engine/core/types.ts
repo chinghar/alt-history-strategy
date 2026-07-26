@@ -75,6 +75,17 @@ export interface Relation {
 }
 
 export type RelationKey = `${CountryId}:${CountryId}`;
+export type WarId = string;
+
+export interface War {
+  id: WarId;
+  attackers: CountryId[];
+  defenders: CountryId[];
+  startTurn: number;
+  startYear: number;
+  /** 0-100 per participant. A side capitulates once its average hits 100. */
+  exhaustion: Record<CountryId, number>;
+}
 
 export interface GameEvent {
   id: string;
@@ -127,6 +138,7 @@ export interface WorldState {
   countries: Record<CountryId, Country>;
   provinces: Record<ProvinceId, Province>;
   relations: Record<RelationKey, Relation>;
+  wars: Record<WarId, War>;
   eventLog: GameEvent[];
   timeline: TimelineEntry[];
   probabilities: Record<OutcomeId, ProbabilityTrack>;

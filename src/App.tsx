@@ -3,6 +3,7 @@ import { CountryDashboard } from './ui/CountryDashboard';
 import { NewsFeed } from './ui/NewsFeed';
 import { TimelinePanel } from './ui/TimelinePanel';
 import { ProbabilityPanel } from './ui/ProbabilityPanel';
+import { WarPanel } from './ui/WarPanel';
 import { TurnControls } from './ui/TurnControls';
 import { NationPicker } from './ui/NationPicker';
 import { useGameStore } from './state/gameStore';
@@ -20,6 +21,7 @@ function App() {
         <MapView />
         <div className="flex flex-col gap-3 overflow-y-auto min-h-0">
           <CountryDashboard />
+          <WarPanel />
           <ProbabilityPanel />
         </div>
       </div>

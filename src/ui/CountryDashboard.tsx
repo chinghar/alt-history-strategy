@@ -1,5 +1,5 @@
 import { useGameStore } from '../state/gameStore';
-import { getCountryRelations, getOtherParty } from '../engine/core/queries';
+import { findWarBetween, getCountryRelations, getOtherParty } from '../engine/core/queries';
 import type { CountryId, TreatyType } from '../engine/core/types';
 
 const GOVERNMENT_LABEL: Record<string, string> = {
@@ -59,6 +59,8 @@ function TaxRateControl({ playerCountryId }: { playerCountryId: CountryId }) {
 function DiplomacyControls({ playerCountryId }: { playerCountryId: CountryId }) {
   const world = useGameStore((s) => s.world);
   const toggleTreaty = useGameStore((s) => s.toggleTreaty);
+  const declareWar = useGameStore((s) => s.declareWar);
+  const suePeace = useGameStore((s) => s.suePeace);
 
   const others = Object.values(world.countries)
     .filter((c) => c.id !== playerCountryId)
@@ -66,28 +68,32 @@ function DiplomacyControls({ playerCountryId }: { playerCountryId: CountryId }) 
       const relation = getCountryRelations(world, playerCountryId).find(
         (r) => getOtherParty(r, playerCountryId) === c.id,
       );
-      return { country: c, score: relation?.score ?? 0, treaties: relation?.treaties ?? [] };
+      const atWar = findWarBetween(world, playerCountryId, c.id) !== undefined;
+      return { country: c, score: relation?.score ?? 0, treaties: relation?.treaties ?? [], atWar };
     })
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => Number(b.atWar) - Number(a.atWar) || b.score - a.score);
 
   return (
     <div>
       <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-1">Diplomacy</h3>
       <div className="space-y-2">
-        {others.map(({ country, score, treaties }) => (
+        {others.map(({ country, score, treaties, atWar }) => (
           <div key={country.id} className="text-xs">
             <div className="flex justify-between">
-              <span className="text-gray-300">{country.name}</span>
+              <span className={atWar ? 'text-red-300 font-medium' : 'text-gray-300'}>
+                {country.name} {atWar && <span className="text-[10px]">(at war)</span>}
+              </span>
               <span className={score >= 0 ? 'text-emerald-400' : 'text-red-400'}>{Math.round(score)}</span>
             </div>
-            <div className="flex gap-1 mt-1">
+            <div className="flex gap-1 mt-1 flex-wrap">
               {TREATY_ORDER.map((treaty) => {
                 const active = treaties.includes(treaty);
                 return (
                   <button
                     key={treaty}
+                    disabled={atWar}
                     onClick={() => toggleTreaty(country.id, treaty, !active)}
-                    className={`px-1.5 py-0.5 rounded text-[10px] border ${
+                    className={`px-1.5 py-0.5 rounded text-[10px] border disabled:opacity-30 disabled:cursor-not-allowed ${
                       active
                         ? 'bg-[#3987e5] border-[#3987e5] text-white'
                         : 'border-white/10 text-gray-500 hover:text-gray-300 hover:border-white/30'
@@ -97,6 +103,21 @@ function DiplomacyControls({ playerCountryId }: { playerCountryId: CountryId }) 
                   </button>
                 );
               })}
+              {atWar ? (
+                <button
+                  onClick={() => suePeace()}
+                  className="px-1.5 py-0.5 rounded text-[10px] border border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
+                >
+                  Sue for Peace
+                </button>
+              ) : (
+                <button
+                  onClick={() => declareWar(country.id)}
+                  className="px-1.5 py-0.5 rounded text-[10px] border border-red-500/40 text-red-400 hover:bg-red-500/10"
+                >
+                  Declare War
+                </button>
+              )}
             </div>
           </div>
         ))}

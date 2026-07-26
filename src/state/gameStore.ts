@@ -1,9 +1,10 @@
 import { create } from 'zustand';
-import type { CountryId, TreatyType, WorldState } from '../engine/core/types';
+import type { CountryId, GameEvent, TreatyType, WorldState } from '../engine/core/types';
 import { buildWorld } from '../engine/core/worldFactory';
 import { advanceTurn } from '../engine/core/turnEngine';
 import { setTaxRate as applyTaxRate } from '../engine/economy/economyEngine';
 import { setTreaty as applyTreaty } from '../engine/diplomacy/diplomacyEngine';
+import { declareWar as applyDeclareWar, suePeace as applySuePeace } from '../engine/warfare/warfareEngine';
 import { scenario1836 } from '../data/scenarios/1836';
 
 export type MapOverlay = 'political' | 'gdp' | 'ideology';
@@ -26,6 +27,8 @@ interface GameStore {
   setPlayerCountry: (id: CountryId) => void;
   setTaxRate: (rate: number) => void;
   toggleTreaty: (otherId: CountryId, treaty: TreatyType, active: boolean) => void;
+  declareWar: (otherId: CountryId) => void;
+  suePeace: () => void;
   resetScenario: () => void;
 }
 
@@ -49,6 +52,33 @@ function loadInitialWorld(): WorldState {
 
 function persist(world: WorldState) {
   localStorage.setItem(SAVE_KEY, JSON.stringify(world));
+}
+
+/** Appends a player-initiated event to both the news log and the historical record. */
+function withPlayerEvent(
+  world: WorldState,
+  text: string,
+  type: string,
+  countryIds: CountryId[],
+  severity: GameEvent['severity'] = 'notable',
+): WorldState {
+  const event: GameEvent = {
+    id: `player-${type}-${countryIds.join('-')}-${world.turn}-${world.eventLog.length}`,
+    turn: world.turn,
+    year: world.date.year,
+    type,
+    countryIds,
+    text,
+    severity,
+  };
+  return {
+    ...world,
+    eventLog: [...world.eventLog, event],
+    timeline: [
+      ...world.timeline,
+      { id: `tl-${event.id}`, turn: event.turn, year: event.year, title: text, description: text, tags: [type] },
+    ],
+  };
 }
 
 const initialWorld = loadInitialWorld();
@@ -92,32 +122,43 @@ export const useGameStore = create<GameStore>((set, get) => ({
   toggleTreaty: (otherId, treaty, active) => {
     const { world, playerCountryId } = get();
     if (!playerCountryId) return;
-    let nextWorld = applyTreaty(world, playerCountryId, otherId, treaty, active);
+    const applied = applyTreaty(world, playerCountryId, otherId, treaty, active);
 
-    const playerName = nextWorld.countries[playerCountryId].name;
-    const otherName = nextWorld.countries[otherId].name;
+    const playerName = applied.countries[playerCountryId].name;
+    const otherName = applied.countries[otherId].name;
     const text =
       treaty === 'sanction'
         ? `${playerName} ${active ? 'imposes sanctions on' : 'lifts sanctions on'} ${otherName}.`
         : `${playerName} ${active ? 'forms' : 'withdraws from'} ${TREATY_PHRASE[treaty]} with ${otherName}.`;
-    const event = {
-      id: `player-treaty-${playerCountryId}-${otherId}-${treaty}-${nextWorld.turn}-${active}`,
-      turn: nextWorld.turn,
-      year: nextWorld.date.year,
-      type: active ? 'treaty_formed' : 'treaty_revoked',
-      countryIds: [playerCountryId, otherId],
-      text,
-      severity: 'notable' as const,
-    };
-    nextWorld = {
-      ...nextWorld,
-      eventLog: [...nextWorld.eventLog, event],
-      timeline: [
-        ...nextWorld.timeline,
-        { id: `tl-${event.id}`, turn: event.turn, year: event.year, title: text, description: text, tags: [event.type] },
-      ],
-    };
 
+    const nextWorld = withPlayerEvent(applied, text, active ? 'treaty_formed' : 'treaty_revoked', [
+      playerCountryId,
+      otherId,
+    ]);
+    persist(nextWorld);
+    set({ world: nextWorld });
+  },
+
+  declareWar: (otherId) => {
+    const { world, playerCountryId } = get();
+    if (!playerCountryId) return;
+    const applied = applyDeclareWar(world, playerCountryId, otherId);
+    if (applied === world) return; // already at war
+
+    const text = `${applied.countries[playerCountryId].name} declares war on ${applied.countries[otherId].name}.`;
+    const nextWorld = withPlayerEvent(applied, text, 'war_declared', [playerCountryId, otherId], 'major');
+    persist(nextWorld);
+    set({ world: nextWorld });
+  },
+
+  suePeace: () => {
+    const { world, playerCountryId } = get();
+    if (!playerCountryId) return;
+    const applied = applySuePeace(world, playerCountryId);
+    if (applied === world) return; // not at war
+
+    const text = `${applied.countries[playerCountryId].name} sues for peace, ending the war.`;
+    const nextWorld = withPlayerEvent(applied, text, 'peace_sued', [playerCountryId], 'major');
     persist(nextWorld);
     set({ world: nextWorld });
   },

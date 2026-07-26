@@ -1,4 +1,4 @@
-import type { CountryId, Relation, WorldState } from './types';
+import type { CountryId, Relation, War, WorldState } from './types';
 
 /** All relations involving a given country, regardless of which side it's stored on. */
 export function getCountryRelations(world: WorldState, countryId: CountryId): Relation[] {
@@ -17,4 +17,22 @@ export function averageProvinceUnrest(world: WorldState, provinceIds: string[]):
 
 export function countriesWithTag(world: WorldState, tag: string) {
   return Object.values(world.countries).filter((c) => c.tags.includes(tag));
+}
+
+export function findWarInvolving(world: WorldState, countryId: CountryId): War | undefined {
+  return Object.values(world.wars).find(
+    (w) => w.attackers.includes(countryId) || w.defenders.includes(countryId),
+  );
+}
+
+export function findWarBetween(world: WorldState, a: CountryId, b: CountryId): War | undefined {
+  return Object.values(world.wars).find(
+    (w) =>
+      (w.attackers.includes(a) && w.defenders.includes(b)) ||
+      (w.attackers.includes(b) && w.defenders.includes(a)),
+  );
+}
+
+export function isAtWar(world: WorldState, countryId: CountryId): boolean {
+  return findWarInvolving(world, countryId) !== undefined;
 }
