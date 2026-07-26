@@ -4,6 +4,7 @@ import {
   type CountryId,
   type GovernmentType,
   type Ideology,
+  type OutcomeId,
   type PrimaryIndustry,
   type Province,
   type ProvinceId,
@@ -46,11 +47,15 @@ export interface ScenarioRelationDef {
 }
 
 export interface ScenarioDefinition {
+  id: string;
   name: string;
+  era: string;
   startYear: number;
   seed: number;
   countries: ScenarioCountryDef[];
   relations: ScenarioRelationDef[];
+  /** Which Historical Probability trackers are relevant to this scenario's timeframe. */
+  outcomeTrackerIds: OutcomeId[];
 }
 
 /** Builds the initial WorldState from a hand-authored scenario definition. */
@@ -106,6 +111,7 @@ export function buildWorld(scenario: ScenarioDefinition): WorldState {
   }
 
   let world: WorldState = {
+    scenarioId: scenario.id,
     seed: scenario.seed,
     turn: 0,
     date: { year: scenario.startYear, month: 1 },
@@ -125,6 +131,7 @@ export function buildWorld(scenario: ScenarioDefinition): WorldState {
       },
     ],
     probabilities: {},
+    activeOutcomeTrackerIds: scenario.outcomeTrackerIds,
   };
 
   world = recomputeAllProbabilities(world);

@@ -9,11 +9,11 @@ import { NationPicker } from './ui/NationPicker';
 import { useGameStore } from './state/gameStore';
 
 function App() {
-  const playerCountryId = useGameStore((s) => s.playerCountryId);
+  const pickerOpen = useGameStore((s) => s.pickerOpen);
 
   return (
     <div className="h-full flex flex-col gap-3 p-3 bg-[#0b0c10]">
-      {!playerCountryId && <NationPicker />}
+      {pickerOpen && <NationPicker />}
 
       <TurnControls />
 

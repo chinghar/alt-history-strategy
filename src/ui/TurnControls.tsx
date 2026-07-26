@@ -1,5 +1,7 @@
 import type { MapOverlay } from '../state/gameStore';
 import { useGameStore } from '../state/gameStore';
+import { scenarios } from '../data/scenarios';
+import { formatYear } from './formatYear';
 
 const OVERLAYS: { id: MapOverlay; label: string }[] = [
   { id: 'political', label: 'Political' },
@@ -9,8 +11,10 @@ const OVERLAYS: { id: MapOverlay; label: string }[] = [
 
 export function TurnControls() {
   const date = useGameStore((s) => s.world.date);
+  const scenarioId = useGameStore((s) => s.world.scenarioId);
   const nextTurn = useGameStore((s) => s.nextTurn);
   const resetScenario = useGameStore((s) => s.resetScenario);
+  const openPicker = useGameStore((s) => s.openPicker);
   const overlay = useGameStore((s) => s.overlay);
   const setOverlay = useGameStore((s) => s.setOverlay);
   const playerCountryId = useGameStore((s) => s.playerCountryId);
@@ -21,9 +25,9 @@ export function TurnControls() {
   return (
     <div className="flex items-center justify-between px-4 py-3 bg-[#181a21] rounded-lg">
       <div>
-        <h1 className="text-base font-semibold text-gray-100">The World of 1836</h1>
+        <h1 className="text-base font-semibold text-gray-100">{scenarios[scenarioId]?.name}</h1>
         <p className="text-xs text-gray-500">
-          Year {date.year}
+          Year {formatYear(date.year)}
           {playerCountryId && <span> · Playing as {playerCountryName}</span>}
         </p>
       </div>
@@ -43,6 +47,12 @@ export function TurnControls() {
       </div>
 
       <div className="flex items-center gap-2">
+        <button
+          onClick={openPicker}
+          className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 border border-white/10 rounded-md"
+        >
+          Change Era
+        </button>
         <button
           onClick={resetScenario}
           className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 border border-white/10 rounded-md"

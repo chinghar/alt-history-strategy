@@ -13,9 +13,12 @@ import type { ScenarioDefinition } from '../../engine/core/worldFactory';
  * weakness plus the active Egyptian revolt (Ottoman Decline).
  */
 export const scenario1836: ScenarioDefinition = {
+  id: '1836',
   name: 'The World of 1836',
+  era: 'Industrial Revolution',
   startYear: 1836,
   seed: 18360101,
+  outcomeTrackerIds: ['german-unification', 'american-civil-war', 'ottoman-decline'],
   countries: [
     {
       id: 'USA',

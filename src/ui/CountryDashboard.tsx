@@ -126,17 +126,41 @@ function DiplomacyControls({ playerCountryId }: { playerCountryId: CountryId }) 
   );
 }
 
+function NationList() {
+  const world = useGameStore((s) => s.world);
+  const playerCountryId = useGameStore((s) => s.playerCountryId);
+  const selectCountry = useGameStore((s) => s.selectCountry);
+
+  const countries = Object.values(world.countries).sort((a, b) => b.gdp - a.gdp);
+
+  return (
+    <div className="rounded-lg bg-[#181a21] p-4">
+      <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-2">
+        Nations — click the map or a name to inspect
+      </h3>
+      <div className="grid grid-cols-2 gap-1">
+        {countries.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => selectCountry(c.id)}
+            className="text-left text-xs px-2 py-1 rounded hover:bg-white/5 text-gray-300"
+          >
+            {c.id === playerCountryId && <span className="text-[#3987e5]">★ </span>}
+            {c.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function CountryDashboard() {
   const world = useGameStore((s) => s.world);
   const selectedCountryId = useGameStore((s) => s.selectedCountryId);
   const playerCountryId = useGameStore((s) => s.playerCountryId);
 
   if (!selectedCountryId) {
-    return (
-      <div className="rounded-lg bg-[#181a21] p-4 text-sm text-gray-500">
-        Click a country on the map to inspect it.
-      </div>
-    );
+    return <NationList />;
   }
 
   const country = world.countries[selectedCountryId];

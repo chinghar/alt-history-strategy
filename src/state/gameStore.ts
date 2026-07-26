@@ -5,7 +5,7 @@ import { advanceTurn } from '../engine/core/turnEngine';
 import { setTaxRate as applyTaxRate } from '../engine/economy/economyEngine';
 import { setTreaty as applyTreaty } from '../engine/diplomacy/diplomacyEngine';
 import { declareWar as applyDeclareWar, suePeace as applySuePeace } from '../engine/warfare/warfareEngine';
-import { scenario1836 } from '../data/scenarios/1836';
+import { scenarios, DEFAULT_SCENARIO_ID } from '../data/scenarios';
 
 export type MapOverlay = 'political' | 'gdp' | 'ideology';
 
@@ -21,6 +21,7 @@ interface GameStore {
   playerCountryId: CountryId | null;
   selectedCountryId: CountryId | null;
   overlay: MapOverlay;
+  pickerOpen: boolean;
   nextTurn: () => void;
   selectCountry: (id: CountryId | null) => void;
   setOverlay: (overlay: MapOverlay) => void;
@@ -29,17 +30,25 @@ interface GameStore {
   toggleTreaty: (otherId: CountryId, treaty: TreatyType, active: boolean) => void;
   declareWar: (otherId: CountryId) => void;
   suePeace: () => void;
+  loadScenario: (scenarioId: string) => void;
   resetScenario: () => void;
+  openPicker: () => void;
+  closePicker: () => void;
 }
 
-const SAVE_KEY = 'alt-history-strategy:save:1836';
+const SAVE_KEY_PREFIX = 'alt-history-strategy:save:';
+
+function saveKeyFor(scenarioId: string): string {
+  return `${SAVE_KEY_PREFIX}${scenarioId}`;
+}
 
 function findPlayerCountryId(world: WorldState): CountryId | null {
   return Object.values(world.countries).find((c) => c.isPlayerControlled)?.id ?? null;
 }
 
-function loadInitialWorld(): WorldState {
-  const raw = localStorage.getItem(SAVE_KEY);
+/** Resumes a scenario's save if one exists, otherwise builds it fresh. */
+function loadWorldForScenario(scenarioId: string): WorldState {
+  const raw = localStorage.getItem(saveKeyFor(scenarioId));
   if (raw) {
     try {
       return JSON.parse(raw) as WorldState;
@@ -47,11 +56,11 @@ function loadInitialWorld(): WorldState {
       // fall through to a fresh world if the save is corrupt
     }
   }
-  return buildWorld(scenario1836);
+  return buildWorld(scenarios[scenarioId]);
 }
 
 function persist(world: WorldState) {
-  localStorage.setItem(SAVE_KEY, JSON.stringify(world));
+  localStorage.setItem(saveKeyFor(world.scenarioId), JSON.stringify(world));
 }
 
 /** Appends a player-initiated event to both the news log and the historical record. */
@@ -81,13 +90,14 @@ function withPlayerEvent(
   };
 }
 
-const initialWorld = loadInitialWorld();
+const initialWorld = loadWorldForScenario(DEFAULT_SCENARIO_ID);
 
 export const useGameStore = create<GameStore>((set, get) => ({
   world: initialWorld,
   playerCountryId: findPlayerCountryId(initialWorld),
   selectedCountryId: null,
   overlay: 'political',
+  pickerOpen: findPlayerCountryId(initialWorld) === null,
 
   nextTurn: () => {
     const world = advanceTurn(get().world);
@@ -97,6 +107,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   selectCountry: (id) => set({ selectedCountryId: id }),
   setOverlay: (overlay) => set({ overlay }),
+  openPicker: () => set({ pickerOpen: true }),
+  closePicker: () => set({ pickerOpen: false }),
 
   setPlayerCountry: (id) => {
     const { world } = get();
@@ -108,7 +120,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     );
     const nextWorld = { ...world, countries };
     persist(nextWorld);
-    set({ world: nextWorld, playerCountryId: id, selectedCountryId: id });
+    set({ world: nextWorld, playerCountryId: id, selectedCountryId: id, pickerOpen: false });
   },
 
   setTaxRate: (rate) => {
@@ -163,9 +175,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ world: nextWorld });
   },
 
+  loadScenario: (scenarioId) => {
+    const world = loadWorldForScenario(scenarioId);
+    set({ world, selectedCountryId: null, playerCountryId: findPlayerCountryId(world), pickerOpen: true });
+  },
+
   resetScenario: () => {
-    const world = buildWorld(scenario1836);
+    const { world: current } = get();
+    const world = buildWorld(scenarios[current.scenarioId]);
     persist(world);
-    set({ world, selectedCountryId: null, playerCountryId: null });
+    set({ world, selectedCountryId: null, playerCountryId: null, pickerOpen: true });
   },
 }));

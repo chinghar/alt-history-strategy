@@ -1,4 +1,5 @@
 import { useGameStore } from '../state/gameStore';
+import { formatYear } from './formatYear';
 
 const SEVERITY_COLOR: Record<string, string> = {
   minor: 'text-gray-500',
@@ -17,7 +18,9 @@ export function NewsFeed() {
         {recent.length === 0 && <p className="text-sm text-gray-600">No news yet — advance a turn.</p>}
         {recent.map((event) => (
           <div key={event.id} className="text-sm">
-            <span className={`text-xs mr-2 tabular-nums ${SEVERITY_COLOR[event.severity]}`}>{event.year}</span>
+            <span className={`text-xs mr-2 tabular-nums ${SEVERITY_COLOR[event.severity]}`}>
+              {formatYear(event.year)}
+            </span>
             <span className="text-gray-300">{event.text}</span>
           </div>
         ))}

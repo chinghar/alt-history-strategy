@@ -132,6 +132,7 @@ export interface WorldDate {
 }
 
 export interface WorldState {
+  scenarioId: string;
   seed: number;
   turn: number;
   date: WorldDate;
@@ -142,6 +143,8 @@ export interface WorldState {
   eventLog: GameEvent[];
   timeline: TimelineEntry[];
   probabilities: Record<OutcomeId, ProbabilityTrack>;
+  /** Which registered Historical Probability trackers apply to this scenario. */
+  activeOutcomeTrackerIds: OutcomeId[];
 }
 
 /** Shape every simulation engine's per-turn tick conforms to. */

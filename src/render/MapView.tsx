@@ -22,6 +22,11 @@ export function MapView() {
     return { min: Math.min(...values), max: Math.max(...values) };
   }, [world.countries]);
 
+  const hasMappedCountries = useMemo(
+    () => countryFeatures.some((f) => f.countryId !== null && f.countryId in world.countries),
+    [world.countries],
+  );
+
   function fillFor(countryId: CountryId | null): string {
     if (!countryId) return NEUTRAL_LAND;
     const country = world.countries[countryId];
@@ -39,7 +44,7 @@ export function MapView() {
         viewBox={`0 0 ${mapDimensions.width} ${mapDimensions.height}`}
         className="w-full h-full"
         role="img"
-        aria-label="World political map, 1836"
+        aria-label="World political map"
       >
         {countryFeatures.map((feature, i) => {
           const isSelected = feature.countryId !== null && feature.countryId === selectedCountryId;
@@ -65,6 +70,14 @@ export function MapView() {
           <div className="font-semibold">{hovered.name}</div>
           <div className="text-gray-400">
             GDP {Math.round(hovered.gdp)} · Opinion {Math.round(hovered.publicOpinion)}
+          </div>
+        </div>
+      )}
+      {!hasMappedCountries && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="bg-black/80 rounded-md px-4 py-3 text-sm text-gray-300 max-w-xs text-center">
+            Modern map geometry doesn't cover this era's borders yet — use the Nations list to
+            inspect and select countries.
           </div>
         </div>
       )}

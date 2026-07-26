@@ -1,4 +1,5 @@
 import { useGameStore } from '../state/gameStore';
+import { formatYear } from './formatYear';
 
 export function TimelinePanel() {
   const timeline = useGameStore((s) => s.world.timeline);
@@ -10,7 +11,7 @@ export function TimelinePanel() {
       <div className="space-y-2 overflow-y-auto flex-1 pr-1">
         {recent.map((entry) => (
           <div key={entry.id} className="text-sm border-l-2 border-white/10 pl-2">
-            <div className="text-xs text-gray-500 tabular-nums">{entry.year}</div>
+            <div className="text-xs text-gray-500 tabular-nums">{formatYear(entry.year)}</div>
             <div className="text-gray-300">{entry.title}</div>
           </div>
         ))}
