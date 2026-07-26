@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { tick } from '../../src/engine/economy/economyEngine';
+import { setTreaty } from '../../src/engine/diplomacy/diplomacyEngine';
 import { createRng } from '../../src/engine/core/rng';
 import { buildWorld } from '../../src/engine/core/worldFactory';
 import { scenario1836 } from '../../src/data/scenarios/1836';
@@ -30,5 +31,15 @@ describe('economyEngine', () => {
     for (const country of Object.values(world.countries)) {
       expect(country.gdp).toBeGreaterThan(0);
     }
+  });
+
+  it('grows a country faster with an active trade agreement than without one', () => {
+    const base = buildWorld(scenario1836);
+    const withTrade = setTreaty(base, 'GBR', 'FRA', 'trade_agreement', true);
+
+    const baseResult = tick(base, createRng(1));
+    const tradeResult = tick(withTrade, createRng(1));
+
+    expect(tradeResult.world.countries['GBR'].gdp).toBeGreaterThan(baseResult.world.countries['GBR'].gdp);
   });
 });

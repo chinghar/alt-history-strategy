@@ -19,10 +19,9 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
   const countries = { ...world.countries };
 
   for (const country of Object.values(world.countries)) {
-    const sanctionCount = getCountryRelations(world, country.id).filter((r) =>
-      r.treaties.includes('sanction'),
-    ).length;
-    const sanctionPenalty = sanctionCount * 0.015;
+    const relations = getCountryRelations(world, country.id);
+    const sanctionPenalty = relations.filter((r) => r.treaties.includes('sanction')).length * 0.015;
+    const tradeBonus = relations.filter((r) => r.treaties.includes('trade_agreement')).length * 0.008;
     const stabilityFactor = (country.government.stability - 50) / 1000;
     const taxDrag = Math.max(0, country.taxRate - 0.25) * 0.1;
 
@@ -37,6 +36,7 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
         taxDrag -
         unrestDrag -
         sanctionPenalty +
+        tradeBonus +
         country.techGrowthBonus +
         jitter;
       const economicOutput = Math.max(1, province.economicOutput * (1 + growth));
