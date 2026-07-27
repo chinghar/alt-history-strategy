@@ -61,6 +61,8 @@ export interface ScenarioDefinition {
   techIds: TechId[];
   /** Which entries in the global LEGISLATURE_CONFIGS registry are active this scenario. */
   legislatureCountryIds: CountryId[];
+  /** Which countries are led by a named collective body rather than an individual. */
+  institutionalLeadershipCountryIds: CountryId[];
 }
 
 /** Builds the initial WorldState from a hand-authored scenario definition. */
@@ -111,6 +113,7 @@ export function buildWorld(scenario: ScenarioDefinition): WorldState {
       pendingBillId: null,
       billStance: null,
       lastLegislativeSessionTurn: 0,
+      lastLeadershipChangeTurn: 0,
     };
   }
 
@@ -150,6 +153,7 @@ export function buildWorld(scenario: ScenarioDefinition): WorldState {
     activeOutcomeTrackerIds: scenario.outcomeTrackerIds,
     availableTechIds: scenario.techIds,
     activeLegislatureCountryIds: scenario.legislatureCountryIds,
+    institutionalLeadershipCountryIds: scenario.institutionalLeadershipCountryIds,
   };
 
   world = recomputeAllProbabilities(world);

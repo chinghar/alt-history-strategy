@@ -76,6 +76,8 @@ export interface Country {
   pendingBillId: BillId | null;
   billStance: BillStance | null;
   lastLegislativeSessionTurn: number;
+  /** Turn of this country's last election/succession — see engine/leadership. */
+  lastLeadershipChangeTurn: number;
 }
 
 export type BillId = string;
@@ -220,6 +222,15 @@ export interface WorldState {
    * Law debates. Same scoping pattern as activeOutcomeTrackerIds.
    */
   activeLegislatureCountryIds: CountryId[];
+  /**
+   * Which countries are led by a named collective body ("The Federal
+   * Commission") rather than an individual — leadership turnover generates
+   * a new institutional title for these instead of a person's name. Scoped
+   * per scenario because the same CountryId can be either depending on era
+   * (e.g. 'USA' is personally led in 1836/1914/1962 but institutionally led
+   * in 2150).
+   */
+  institutionalLeadershipCountryIds: CountryId[];
 }
 
 /** Shape every simulation engine's per-turn tick conforms to. */

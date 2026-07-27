@@ -20,6 +20,7 @@ export function TurnControls() {
   const resetScenario = useGameStore((s) => s.resetScenario);
   const openPicker = useGameStore((s) => s.openPicker);
   const openEncyclopedia = useGameStore((s) => s.openEncyclopedia);
+  const openSandbox = useGameStore((s) => s.openSandbox);
   const overlay = useGameStore((s) => s.overlay);
   const setOverlay = useGameStore((s) => s.setOverlay);
   const playerCountryId = useGameStore((s) => s.playerCountryId);
@@ -89,6 +90,12 @@ export function TurnControls() {
           className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 border border-white/10 rounded-md"
         >
           Encyclopedia
+        </button>
+        <button
+          onClick={openSandbox}
+          className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 border border-white/10 rounded-md"
+        >
+          Sandbox
         </button>
         <button
           onClick={openPicker}

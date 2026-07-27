@@ -24,6 +24,7 @@ export const scenario1962: ScenarioDefinition = {
   seed: 19621022,
   outcomeTrackerIds: ['cuban-missile-crisis-peace', 'sino-soviet-split', 'japanese-economic-miracle'],
   legislatureCountryIds: ['USR'],
+  institutionalLeadershipCountryIds: [],
   techIds: [
     'icbm_deployment',
     'nuclear_submarine_fleet',

@@ -3,7 +3,7 @@ import { templateFlavorTextProvider as flavor } from '../flavor/flavorTextProvid
 
 const EVENT_CHANCE = 0.025;
 
-interface WildcardOutcome {
+export interface WildcardOutcome {
   world: WorldState;
   text: string;
   severity: GameEvent['severity'];
@@ -11,7 +11,7 @@ interface WildcardOutcome {
 
 type WildcardGenerator = (world: WorldState, countryId: CountryId, rng: Rng) => WildcardOutcome | null;
 
-function resourceDiscovery(world: WorldState, countryId: CountryId, rng: Rng): WildcardOutcome | null {
+export function resourceDiscovery(world: WorldState, countryId: CountryId, rng: Rng): WildcardOutcome | null {
   const country = world.countries[countryId];
   if (country.provinceIds.length === 0) return null;
   const pid = country.provinceIds[rng.int(0, country.provinceIds.length - 1)];
@@ -27,7 +27,7 @@ function resourceDiscovery(world: WorldState, countryId: CountryId, rng: Rng): W
   };
 }
 
-function naturalDisaster(world: WorldState, countryId: CountryId, rng: Rng): WildcardOutcome | null {
+export function naturalDisaster(world: WorldState, countryId: CountryId, rng: Rng): WildcardOutcome | null {
   const country = world.countries[countryId];
   if (country.provinceIds.length === 0) return null;
   const pid = country.provinceIds[rng.int(0, country.provinceIds.length - 1)];
@@ -50,7 +50,7 @@ function naturalDisaster(world: WorldState, countryId: CountryId, rng: Rng): Wil
   };
 }
 
-function diplomaticIncident(world: WorldState, countryId: CountryId, rng: Rng): WildcardOutcome | null {
+export function diplomaticIncident(world: WorldState, countryId: CountryId, rng: Rng): WildcardOutcome | null {
   const otherIds = Object.keys(world.countries).filter((id) => id !== countryId);
   if (otherIds.length === 0) return null;
   const otherId = otherIds[rng.int(0, otherIds.length - 1)];
@@ -67,7 +67,7 @@ function diplomaticIncident(world: WorldState, countryId: CountryId, rng: Rng): 
   };
 }
 
-function culturalFlourishing(world: WorldState, countryId: CountryId, rng: Rng): WildcardOutcome | null {
+export function culturalFlourishing(world: WorldState, countryId: CountryId, rng: Rng): WildcardOutcome | null {
   const country = world.countries[countryId];
   const boost = 5 + rng.next() * 5;
   return {
@@ -83,7 +83,7 @@ function culturalFlourishing(world: WorldState, countryId: CountryId, rng: Rng):
   };
 }
 
-function epidemic(world: WorldState, countryId: CountryId, rng: Rng): WildcardOutcome | null {
+export function epidemic(world: WorldState, countryId: CountryId, rng: Rng): WildcardOutcome | null {
   const country = world.countries[countryId];
   if (country.provinceIds.length === 0) return null;
   const provinces = { ...world.provinces };

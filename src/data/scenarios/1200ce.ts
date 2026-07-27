@@ -28,6 +28,7 @@ export const scenario1200ce: ScenarioDefinition = {
   seed: 12000101,
   outcomeTrackerIds: ['mongol-conquest', 'fall-of-constantinople', 'khwarezmian-destruction'],
   legislatureCountryIds: [],
+  institutionalLeadershipCountryIds: [],
   techIds: [
     'composite_bow_cavalry',
     'siege_train_engineering',

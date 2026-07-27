@@ -8,16 +8,19 @@ import { WarPanel } from './ui/WarPanel';
 import { TurnControls } from './ui/TurnControls';
 import { NationPicker } from './ui/NationPicker';
 import { Encyclopedia } from './ui/Encyclopedia';
+import { SandboxPanel } from './ui/SandboxPanel';
 import { useGameStore } from './state/gameStore';
 
 function App() {
   const pickerOpen = useGameStore((s) => s.pickerOpen);
   const encyclopediaOpen = useGameStore((s) => s.encyclopediaOpen);
+  const sandboxOpen = useGameStore((s) => s.sandboxOpen);
 
   return (
     <div className="h-full flex flex-col gap-3 p-3 bg-[#0b0c10]">
       {pickerOpen && <NationPicker />}
       {!pickerOpen && encyclopediaOpen && <Encyclopedia />}
+      {!pickerOpen && sandboxOpen && <SandboxPanel />}
 
       <TurnControls />
 

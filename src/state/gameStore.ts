@@ -10,6 +10,7 @@ import { setResearchFocus as applySetResearchFocus } from '../engine/research/re
 import { queueEspionageMission as applyQueueEspionageMission } from '../engine/espionage/espionageEngine';
 import { setBillStance as applySetBillStance } from '../engine/legislature/legislatureEngine';
 import { templateFlavorTextProvider as flavor } from '../engine/flavor/flavorTextProvider';
+import { forceEvent as applyForceEvent, type ForceableEventType } from '../engine/sandbox/forceEvents';
 import { scenarios, DEFAULT_SCENARIO_ID } from '../data/scenarios';
 
 export type MapOverlay = 'political' | 'gdp' | 'ideology' | 'population' | 'military' | 'provinces';
@@ -32,6 +33,7 @@ interface GameStore {
   overlay: MapOverlay;
   pickerOpen: boolean;
   encyclopediaOpen: boolean;
+  sandboxOpen: boolean;
   nextTurn: () => void;
   selectCountry: (id: CountryId | null) => void;
   setOverlay: (overlay: MapOverlay) => void;
@@ -43,12 +45,15 @@ interface GameStore {
   setResearchFocus: (techId: string) => void;
   orderEspionage: (otherId: CountryId, mission: SpyMission) => void;
   castVote: (stance: BillStance) => void;
+  forceEvent: (type: ForceableEventType, countryId: CountryId, secondCountryId: CountryId | null) => void;
   loadScenario: (scenarioId: string) => void;
   resetScenario: () => void;
   openPicker: () => void;
   closePicker: () => void;
   openEncyclopedia: () => void;
   closeEncyclopedia: () => void;
+  openSandbox: () => void;
+  closeSandbox: () => void;
   exportSave: () => void;
   importSave: (json: string) => boolean;
 }
@@ -137,6 +142,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   overlay: 'political',
   pickerOpen: findPlayerCountryId(initialWorld) === null,
   encyclopediaOpen: false,
+  sandboxOpen: false,
 
   nextTurn: () => {
     const world = advanceTurn(get().world);
@@ -150,6 +156,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   closePicker: () => set({ pickerOpen: false }),
   openEncyclopedia: () => set({ encyclopediaOpen: true }),
   closeEncyclopedia: () => set({ encyclopediaOpen: false }),
+  openSandbox: () => set({ sandboxOpen: true }),
+  closeSandbox: () => set({ sandboxOpen: false }),
 
   setPlayerCountry: (id) => {
     const { world } = get();
@@ -252,6 +260,31 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const text = flavor.billStanceSet(applied.countries[playerCountryId].name, stance, playerActionRng(applied));
     const nextWorld = withPlayerEvent(applied, text, 'bill_stance_set', [playerCountryId], 'minor');
+    persist(nextWorld);
+    set({ world: nextWorld });
+  },
+
+  forceEvent: (type, countryId, secondCountryId) => {
+    const { world } = get();
+    const result = applyForceEvent(world, type, countryId, secondCountryId, playerActionRng(world));
+    if (result.events.length === 0) return;
+
+    const nextWorld = {
+      ...result.world,
+      eventLog: [...result.world.eventLog, ...result.events],
+      timeline: [
+        ...result.world.timeline,
+        ...result.events.map((e) => ({
+          id: `tl-${e.id}`,
+          turn: e.turn,
+          year: e.year,
+          title: e.text,
+          description: e.text,
+          tags: [e.type],
+          countryIds: e.countryIds,
+        })),
+      ],
+    };
     persist(nextWorld);
     set({ world: nextWorld });
   },

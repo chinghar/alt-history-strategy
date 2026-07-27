@@ -29,6 +29,10 @@ export const scenario431bce: ScenarioDefinition = {
   seed: 4310431,
   outcomeTrackerIds: ['spartan-victory', 'macedonian-hegemony', 'carthaginian-dominance', 'roman-ascendancy'],
   legislatureCountryIds: ['ATH'],
+  // These poleis/republics are led by a named body, not an individual — see
+  // engine/leadership. Kept as data here rather than inferred from the
+  // starting leaderName string, so it survives regardless of phrasing.
+  institutionalLeadershipCountryIds: ['COR', 'THB', 'SYR', 'CAR', 'ARG', 'CCY', 'ROM', 'KSH', 'CHU'],
   techIds: [
     'trireme_design',
     'hoplite_phalanx_reform',

@@ -4,7 +4,7 @@ import { templateFlavorTextProvider as flavor } from '../flavor/flavorTextProvid
 
 const FUNDING_RATE = 0.02; // fraction of GDP converted to research points each turn
 
-function isUnlockable(tech: (typeof TECH_REGISTRY)[string], country: Country): boolean {
+export function isUnlockable(tech: (typeof TECH_REGISTRY)[string], country: Country): boolean {
   if (country.unlockedTechIds.includes(tech.id)) return false;
   if (tech.prerequisiteId && !country.unlockedTechIds.includes(tech.prerequisiteId)) return false;
   return true;

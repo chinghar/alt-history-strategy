@@ -24,6 +24,7 @@ export const scenario1914: ScenarioDefinition = {
   seed: 19140628,
   outcomeTrackerIds: ['great-war-outbreak', 'russian-revolution', 'ottoman-decline'],
   legislatureCountryIds: ['GER', 'RUS'],
+  institutionalLeadershipCountryIds: [],
   techIds: [
     'machine_gun_doctrine',
     'dreadnought_construction',

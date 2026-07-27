@@ -49,6 +49,9 @@ export interface FlavorTextProvider {
   naturalDisaster(country: string, provinceName: string, rng: Rng): string;
   culturalFlourishing(country: string, rng: Rng): string;
   epidemic(country: string, rng: Rng): string;
+
+  leaderElected(country: string, leaderName: string, rng: Rng): string;
+  leaderSucceeds(country: string, leaderName: string, rng: Rng): string;
 }
 
 function pick<T>(options: readonly T[], rng: Rng): T {
@@ -451,6 +454,28 @@ export const templateFlavorTextProvider: FlavorTextProvider = {
         `An epidemic sweeps through ${country}, straining public order and finances.`,
         `Disease spreads across ${country}, taxing both the treasury and public patience.`,
         `${country} battles an outbreak that strains order and public finances alike.`,
+      ],
+      rng,
+    );
+  },
+
+  leaderElected(country, leaderName, rng) {
+    return pick(
+      [
+        `${leaderName} is elected to lead ${country} on a fresh mandate.`,
+        `${country} installs ${leaderName} after a decisive election.`,
+        `Voters hand power to ${leaderName} in ${country}'s latest election.`,
+      ],
+      rng,
+    );
+  },
+
+  leaderSucceeds(country, leaderName, rng) {
+    return pick(
+      [
+        `${leaderName} succeeds to power in ${country}.`,
+        `${country} passes to new leadership under ${leaderName}.`,
+        `${leaderName} assumes the throne of ${country}.`,
       ],
       rng,
     );

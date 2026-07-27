@@ -3,6 +3,7 @@ import { createRng, deriveSeed } from './rng';
 import { tick as aiTick } from '../ai/aiEngine';
 import { tick as diplomacyTick } from '../diplomacy/diplomacyEngine';
 import { tick as politicsTick } from '../politics/politicsEngine';
+import { tick as leaderTick } from '../leadership/leaderEngine';
 import { tick as economyTick } from '../economy/economyEngine';
 import { tick as researchTick } from '../research/researchEngine';
 import { tick as militaryTick } from '../military/militaryEngine';
@@ -18,9 +19,9 @@ const MAX_EVENT_LOG = 300;
 
 /**
  * Advances the world by one turn. Phase order — ai, espionage, wildcard
- * events, legislature, diplomacy, politics, economy, research, military,
- * warfare, events, probability, timeline — is fixed so that later phases
- * always see the effects of earlier ones within the same turn.
+ * events, legislature, diplomacy, politics, leadership, economy, research,
+ * military, warfare, events, probability, timeline — is fixed so that later
+ * phases always see the effects of earlier ones within the same turn.
  * Deterministic: identical (world, seed) in always produces an identical
  * WorldState out.
  */
@@ -39,6 +40,7 @@ export function advanceTurn(world: WorldState): WorldState {
     legislatureTick,
     diplomacyTick,
     politicsTick,
+    leaderTick,
     economyTick,
     researchTick,
     militaryTick,

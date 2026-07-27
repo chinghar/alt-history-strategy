@@ -1,5 +1,7 @@
 import {
   clamp,
+  type Country,
+  type CountryId,
   type EngineResult,
   type GameEvent,
   type GovernmentType,
@@ -9,6 +11,7 @@ import {
 } from '../core/types';
 import { averageProvinceUnrest } from '../core/queries';
 import { templateFlavorTextProvider as flavor } from '../flavor/flavorTextProvider';
+import { generateLeaderName } from '../leadership/namePools';
 
 const COLLAPSE_STABILITY_FLOOR = 10;
 const COLLAPSE_CHANCE_PER_TURN = 0.2;
@@ -28,16 +31,67 @@ const REVOLUTION_PATH: Partial<Record<GovernmentType, GovernmentType>> = {
   empire: 'republic',
 };
 
-const NEW_LEADER_TITLE: Record<GovernmentType, string> = {
-  absolute_monarchy: 'A Restored Monarch',
-  constitutional_monarchy: 'A Reforming Monarch',
-  republic: 'A Provisional President',
-  empire: 'A New Dynasty',
-  confederation: 'A Council of States',
-};
+/**
+ * Topples or reforms a country's government: republics fracture into
+ * confederations, monarchies/empires either reform into a constitutional
+ * monarchy or fall to revolution, and a fresh leader (real generated name,
+ * not a generic placeholder — see engine/leadership) takes over regardless
+ * of which path was taken. Exported so the sandbox can force this outside
+ * the normal per-turn collapse check, not just call it from tick() below.
+ */
+export function forceRegimeChange(world: WorldState, countryId: CountryId, rng: Rng): EngineResult {
+  const country = world.countries[countryId];
+  if (!country) return { world, events: [] };
+
+  const government = country.government;
+  let newType: GovernmentType = government.type;
+  let flavorText: string;
+
+  if (government.type === 'republic') {
+    newType = 'confederation';
+    flavorText = flavor.regimeChangeFracture(country.name, rng);
+  } else if (rng.next() < 0.5 && REVOLUTION_PATH[government.type]) {
+    newType = REVOLUTION_PATH[government.type]!;
+    flavorText = flavor.regimeChangeRevolution(country.name, rng);
+  } else if (REFORM_PATH[government.type]) {
+    newType = REFORM_PATH[government.type]!;
+    flavorText = flavor.regimeChangeReform(country.name, rng);
+  } else {
+    newType = government.type;
+    flavorText = flavor.regimeChangeReshuffle(country.name, rng);
+  }
+
+  const otherIdeologies = IDEOLOGIES.filter((i) => i !== country.ideology);
+  const ideology = otherIdeologies[rng.int(0, otherIdeologies.length - 1)];
+  const isInstitutional = world.institutionalLeadershipCountryIds.includes(countryId);
+  const leaderName = generateLeaderName(countryId, newType, isInstitutional, rng);
+
+  const nextCountry: Country = {
+    ...country,
+    publicOpinion: clamp(country.publicOpinion + 20, 0, 100),
+    government: { type: newType, leaderName, stability: 45 + rng.next() * 10 },
+    ideology,
+    lastLeadershipChangeTurn: world.turn,
+  };
+
+  const event: GameEvent = {
+    id: `regime-change-${countryId}-${world.turn}`,
+    turn: world.turn,
+    year: world.date.year,
+    type: 'regime_change',
+    countryIds: [countryId],
+    text: flavorText,
+    severity: 'major',
+  };
+
+  return {
+    world: { ...world, countries: { ...world.countries, [countryId]: nextCountry } },
+    events: [event],
+  };
+}
 
 export function tick(world: WorldState, rng: Rng): EngineResult {
-  const countries = { ...world.countries };
+  let countries = { ...world.countries };
   const provinces = { ...world.provinces };
   const events: GameEvent[] = [];
 
@@ -50,13 +104,12 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
     opinionDelta += country.taxRate < 0.2 ? 0.5 : -(country.taxRate - 0.2) * 5;
     opinionDelta += (rng.next() - 0.5) * 1.5;
 
-    let publicOpinion = clamp(country.publicOpinion + opinionDelta, 0, 100);
+    const publicOpinion = clamp(country.publicOpinion + opinionDelta, 0, 100);
 
     const stabilityDelta = (publicOpinion - 50) / 20 + (rng.next() - 0.5) * 1.2;
     const previousStability = country.government.stability;
-    let stability = clamp(previousStability + stabilityDelta, 0, 100);
-    let government = { ...country.government, stability };
-    let ideology = country.ideology;
+    const stability = clamp(previousStability + stabilityDelta, 0, 100);
+    const government = { ...country.government, stability };
 
     if (previousStability >= 25 && stability < 25) {
       events.push({
@@ -70,50 +123,19 @@ export function tick(world: WorldState, rng: Rng): EngineResult {
       });
     }
 
+    countries[country.id] = { ...country, publicOpinion, government };
+
     if (stability < COLLAPSE_STABILITY_FLOOR && rng.next() < COLLAPSE_CHANCE_PER_TURN) {
-      let newType: GovernmentType = government.type;
-      let flavorText: string;
-
-      if (government.type === 'republic') {
-        newType = 'confederation';
-        flavorText = flavor.regimeChangeFracture(country.name, rng);
-      } else if (rng.next() < 0.5 && REVOLUTION_PATH[government.type]) {
-        newType = REVOLUTION_PATH[government.type]!;
-        flavorText = flavor.regimeChangeRevolution(country.name, rng);
-      } else if (REFORM_PATH[government.type]) {
-        newType = REFORM_PATH[government.type]!;
-        flavorText = flavor.regimeChangeReform(country.name, rng);
-      } else {
-        newType = government.type;
-        flavorText = flavor.regimeChangeReshuffle(country.name, rng);
-      }
-
-      const otherIdeologies = IDEOLOGIES.filter((i) => i !== country.ideology);
-      ideology = otherIdeologies[rng.int(0, otherIdeologies.length - 1)];
-      government = {
-        type: newType,
-        leaderName: NEW_LEADER_TITLE[newType],
-        stability: 45 + rng.next() * 10,
-      };
-      publicOpinion = clamp(publicOpinion + 20, 0, 100);
-
-      events.push({
-        id: `regime-change-${country.id}-${world.turn}`,
-        turn: world.turn,
-        year: world.date.year,
-        type: 'regime_change',
-        countryIds: [country.id],
-        text: flavorText,
-        severity: 'major',
-      });
+      const result = forceRegimeChange({ ...world, countries }, country.id, rng);
+      countries = result.world.countries;
+      events.push(...result.events);
     }
 
-    countries[country.id] = { ...country, publicOpinion, government, ideology };
-
+    const finalOpinion = countries[country.id].publicOpinion;
     for (const pid of country.provinceIds) {
       const province = provinces[pid];
       const unrestDelta =
-        -country.gdpGrowth * 100 + (publicOpinion < 30 ? 2 : -1) + (rng.next() - 0.5) * 1.5;
+        -country.gdpGrowth * 100 + (finalOpinion < 30 ? 2 : -1) + (rng.next() - 0.5) * 1.5;
       provinces[pid] = { ...province, unrest: clamp(province.unrest + unrestDelta, 0, 100) };
     }
   }
