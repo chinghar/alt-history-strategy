@@ -10,21 +10,33 @@ export function NationPicker() {
   const closePicker = useGameStore((s) => s.closePicker);
 
   const countries = Object.values(world.countries).sort((a, b) => b.gdp - a.gdp);
+  const currentScenario = scenarioList.find((s) => s.id === world.scenarioId);
+  const playerCountry = playerCountryId ? world.countries[playerCountryId] : null;
 
   return (
     <div className="fixed inset-0 z-50 bg-[#0b0c10]/95 flex items-center justify-center p-6 overflow-y-auto">
       <div className="max-w-4xl w-full">
-        <div className="flex items-start justify-between mb-1">
-          <h1 className="text-2xl font-semibold text-gray-100">Choose Your Era & Nation</h1>
-          {playerCountryId && (
-            <button
-              onClick={closePicker}
-              className="text-sm text-gray-500 hover:text-gray-300 px-2 py-1"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
+        <h1 className="text-2xl font-semibold text-gray-100 mb-1">Choose Your Era & Nation</h1>
+
+        {playerCountry && currentScenario && (
+          <>
+            <div className="mt-4 mb-6 p-4 rounded-lg bg-[#3987e5]/10 border border-[#3987e5]/40 flex items-center justify-between gap-4">
+              <div>
+                <div className="text-xs uppercase tracking-wide text-gray-500">Continue your game</div>
+                <div className="text-lg font-semibold text-gray-100">
+                  {playerCountry.name} — {currentScenario.name}, Year {formatYear(world.date.year)}
+                </div>
+              </div>
+              <button
+                onClick={closePicker}
+                className="shrink-0 px-4 py-2 bg-[#3987e5] hover:bg-[#256abf] text-white rounded-md font-medium text-sm"
+              >
+                Continue
+              </button>
+            </div>
+            <p className="text-center text-xs text-gray-600 mb-6">— or start a new game below —</p>
+          </>
+        )}
 
         <div className="flex gap-2 mb-4">
           {scenarioList.map((scenario) => (

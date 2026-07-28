@@ -142,7 +142,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   playerCountryId: findPlayerCountryId(initialWorld),
   selectedCountryId: null,
   overlay: 'political',
-  pickerOpen: findPlayerCountryId(initialWorld) === null,
+  // Always true on load — the nation picker is the game's front door, HOI4-style,
+  // even when a save exists. NationPicker offers a one-click "Continue" for that
+  // case rather than silently dropping the player back into the dashboard.
+  pickerOpen: true,
   encyclopediaOpen: false,
   sandboxOpen: false,
 
