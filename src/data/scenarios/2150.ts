@@ -33,6 +33,7 @@ export const scenario2150: ScenarioDefinition = {
   outcomeTrackerIds: [],
   legislatureCountryIds: ['EUF'],
   institutionalLeadershipCountryIds: ['USA', 'CHN', 'EUF', 'IND', 'AFU', 'RUS', 'PPA', 'SAU', 'LUC', 'ARC'],
+  focusTreeCountryIds: [],
   techIds: [
     'fusion_power',
     'orbital_elevators',

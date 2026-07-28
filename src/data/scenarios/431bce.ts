@@ -33,6 +33,7 @@ export const scenario431bce: ScenarioDefinition = {
   // engine/leadership. Kept as data here rather than inferred from the
   // starting leaderName string, so it survives regardless of phrasing.
   institutionalLeadershipCountryIds: ['COR', 'THB', 'SYR', 'CAR', 'ARG', 'CCY', 'ROM', 'KSH', 'CHU'],
+  focusTreeCountryIds: ['ATH'],
   techIds: [
     'trireme_design',
     'hoplite_phalanx_reform',

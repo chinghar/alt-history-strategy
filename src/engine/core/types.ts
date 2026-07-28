@@ -78,6 +78,41 @@ export interface Country {
   lastLegislativeSessionTurn: number;
   /** Turn of this country's last election/succession — see engine/leadership. */
   lastLeadershipChangeTurn: number;
+  currentFocusId: FocusId | null;
+  /** Turns remaining on the current focus, counting down to 0. */
+  focusProgressTurns: number;
+  completedFocusIds: FocusId[];
+}
+
+export type FocusId = string;
+
+export interface FocusEffect {
+  stabilityDelta?: number;
+  opinionDelta?: number;
+  taxRateDelta?: number;
+  debtDelta?: number;
+  /** Added to policyGrowthBonus — the same accumulator legislature bills feed. */
+  growthBonusDelta?: number;
+  /** Added to techMilitaryBonus — the same accumulator military tech feeds. */
+  militaryBonusDelta?: number;
+  unlockTechId?: TechId;
+  addTag?: string;
+  relationDelta?: { targetId: CountryId; delta: number };
+  formTreaty?: { targetId: CountryId; treaty: TreatyType };
+}
+
+export interface FocusDef {
+  id: FocusId;
+  countryId: CountryId;
+  name: string;
+  description: string;
+  /** Must all be completed before this focus becomes selectable. */
+  prerequisiteIds: FocusId[];
+  durationTurns: number;
+  /** Grid position for the tree layout (column, row) — mirrors HOI4's branching-tree presentation. */
+  x: number;
+  y: number;
+  effect: FocusEffect;
 }
 
 export type BillId = string;
@@ -231,6 +266,8 @@ export interface WorldState {
    * in 2150).
    */
   institutionalLeadershipCountryIds: CountryId[];
+  /** Which countries have an authored national focus tree active this scenario — see engine/focus. */
+  activeFocusTreeCountryIds: CountryId[];
 }
 
 /** Shape every simulation engine's per-turn tick conforms to. */

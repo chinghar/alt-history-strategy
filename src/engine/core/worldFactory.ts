@@ -63,6 +63,8 @@ export interface ScenarioDefinition {
   legislatureCountryIds: CountryId[];
   /** Which countries are led by a named collective body rather than an individual. */
   institutionalLeadershipCountryIds: CountryId[];
+  /** Which countries have an authored national focus tree active this scenario. */
+  focusTreeCountryIds: CountryId[];
 }
 
 /** Builds the initial WorldState from a hand-authored scenario definition. */
@@ -114,6 +116,9 @@ export function buildWorld(scenario: ScenarioDefinition): WorldState {
       billStance: null,
       lastLegislativeSessionTurn: 0,
       lastLeadershipChangeTurn: 0,
+      currentFocusId: null,
+      focusProgressTurns: 0,
+      completedFocusIds: [],
     };
   }
 
@@ -154,6 +159,7 @@ export function buildWorld(scenario: ScenarioDefinition): WorldState {
     availableTechIds: scenario.techIds,
     activeLegislatureCountryIds: scenario.legislatureCountryIds,
     institutionalLeadershipCountryIds: scenario.institutionalLeadershipCountryIds,
+    activeFocusTreeCountryIds: scenario.focusTreeCountryIds,
   };
 
   world = recomputeAllProbabilities(world);

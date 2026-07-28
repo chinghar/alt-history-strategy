@@ -52,6 +52,8 @@ export interface FlavorTextProvider {
 
   leaderElected(country: string, leaderName: string, rng: Rng): string;
   leaderSucceeds(country: string, leaderName: string, rng: Rng): string;
+
+  focusCompleted(country: string, focusName: string, rng: Rng): string;
 }
 
 function pick<T>(options: readonly T[], rng: Rng): T {
@@ -476,6 +478,17 @@ export const templateFlavorTextProvider: FlavorTextProvider = {
         `${leaderName} succeeds to power in ${country}.`,
         `${country} passes to new leadership under ${leaderName}.`,
         `${leaderName} assumes the throne of ${country}.`,
+      ],
+      rng,
+    );
+  },
+
+  focusCompleted(country, focusName, rng) {
+    return pick(
+      [
+        `${country} completes the national focus: ${focusName}.`,
+        `${country} brings ${focusName} to fruition.`,
+        `Years of planning culminate as ${country} completes ${focusName}.`,
       ],
       rng,
     );

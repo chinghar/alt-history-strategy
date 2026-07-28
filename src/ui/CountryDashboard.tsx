@@ -4,6 +4,8 @@ import { findWarBetween, getCountryRelations, getOtherParty } from '../engine/co
 import { clamp, type Country, type CountryId, type SpyMission, type TreatyType } from '../engine/core/types';
 import { TECH_REGISTRY } from '../engine/research/techs';
 import { BILL_REGISTRY, LEGISLATURE_CONFIGS } from '../engine/legislature/bills';
+import { FOCUS_REGISTRY, focusesForCountry } from '../engine/focus/focuses';
+import { availableFocuses } from '../engine/focus/focusEngine';
 
 const GOVERNMENT_LABEL: Record<string, string> = {
   absolute_monarchy: 'Absolute Monarchy',
@@ -281,6 +283,106 @@ function LegislatureSummary({ country }: { country: Country }) {
   );
 }
 
+const FOCUS_CELL_WIDTH = 148;
+const FOCUS_CELL_HEIGHT = 92;
+const FOCUS_BOX_WIDTH = 130;
+const FOCUS_BOX_HEIGHT = 68;
+
+function FocusTreePanel({ country, isPlayerControlled }: { country: Country; isPlayerControlled: boolean }) {
+  const setNationalFocus = useGameStore((s) => s.setNationalFocus);
+  const focuses = focusesForCountry(country.id);
+  if (focuses.length === 0) return null;
+
+  const available = new Set(availableFocuses(country).map((f) => f.id));
+  const minX = Math.min(...focuses.map((f) => f.x));
+  const maxX = Math.max(...focuses.map((f) => f.x));
+  const maxY = Math.max(...focuses.map((f) => f.y));
+  const width = (maxX - minX + 1) * FOCUS_CELL_WIDTH;
+  const height = (maxY + 1) * FOCUS_CELL_HEIGHT;
+
+  function boxLeft(x: number) {
+    return (x - minX) * FOCUS_CELL_WIDTH + (FOCUS_CELL_WIDTH - FOCUS_BOX_WIDTH) / 2;
+  }
+  function boxTop(y: number) {
+    return y * FOCUS_CELL_HEIGHT + (FOCUS_CELL_HEIGHT - FOCUS_BOX_HEIGHT) / 2;
+  }
+
+  const current = country.currentFocusId ? FOCUS_REGISTRY[country.currentFocusId] : null;
+  const progress = current ? 1 - country.focusProgressTurns / current.durationTurns : 0;
+
+  return (
+    <div>
+      <h3 className="text-xs uppercase tracking-wide text-gray-500 mb-1">National Focus</h3>
+      {current && (
+        <div className="mb-2 text-xs">
+          <div className="flex justify-between text-gray-300">
+            <span>{current.name}</span>
+            <span className="tabular-nums">{country.focusProgressTurns} turn(s) left</span>
+          </div>
+          <div className="h-1.5 rounded-full bg-white/5 mt-1 overflow-hidden">
+            <div className="h-full bg-[#3987e5]" style={{ width: `${Math.round(progress * 100)}%` }} />
+          </div>
+        </div>
+      )}
+      <div className="overflow-x-auto">
+        <div className="relative" style={{ width, height }}>
+          <svg className="absolute inset-0 pointer-events-none" width={width} height={height}>
+            {focuses.flatMap((f) =>
+              f.prerequisiteIds.map((prereqId) => {
+                const prereq = FOCUS_REGISTRY[prereqId];
+                if (!prereq) return null;
+                const x1 = boxLeft(prereq.x) + FOCUS_BOX_WIDTH / 2;
+                const y1 = boxTop(prereq.y) + FOCUS_BOX_HEIGHT;
+                const x2 = boxLeft(f.x) + FOCUS_BOX_WIDTH / 2;
+                const y2 = boxTop(f.y);
+                const done = country.completedFocusIds.includes(prereqId);
+                return (
+                  <line
+                    key={`${prereqId}-${f.id}`}
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke={done ? '#3987e5' : '#374151'}
+                    strokeWidth={2}
+                  />
+                );
+              }),
+            )}
+          </svg>
+          {focuses.map((f) => {
+            const isDone = country.completedFocusIds.includes(f.id);
+            const isCurrent = country.currentFocusId === f.id;
+            const isAvailable = available.has(f.id);
+            const clickable = isPlayerControlled && isAvailable && !country.currentFocusId;
+            return (
+              <button
+                key={f.id}
+                disabled={!clickable}
+                onClick={() => clickable && setNationalFocus(f.id)}
+                title={f.description}
+                className={`absolute text-left px-2 py-1.5 rounded text-[11px] border overflow-hidden ${
+                  isDone
+                    ? 'bg-[#199e70]/15 border-[#199e70]/50 text-gray-200'
+                    : isCurrent
+                      ? 'bg-[#3987e5]/15 border-[#3987e5] text-gray-100'
+                      : isAvailable
+                        ? 'border-white/20 text-gray-300 hover:border-white/40 disabled:cursor-not-allowed'
+                        : 'border-white/5 text-gray-600'
+                }`}
+                style={{ left: boxLeft(f.x), top: boxTop(f.y), width: FOCUS_BOX_WIDTH, height: FOCUS_BOX_HEIGHT }}
+              >
+                <div className="font-medium leading-tight">{f.name}</div>
+                <div className="text-gray-500 mt-0.5">{f.durationTurns} turns</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function NationList() {
   const world = useGameStore((s) => s.world);
   const playerCountryId = useGameStore((s) => s.playerCountryId);
@@ -309,7 +411,7 @@ function NationList() {
   );
 }
 
-type DashboardTab = 'overview' | 'research' | 'legislature' | 'diplomacy';
+type DashboardTab = 'overview' | 'research' | 'legislature' | 'focus' | 'diplomacy';
 
 function RelationsList({ country }: { country: Country }) {
   const world = useGameStore((s) => s.world);
@@ -359,11 +461,13 @@ export function CountryDashboard() {
   const isPlayerCountry = selectedCountryId === playerCountryId;
   const hasLegislature =
     Boolean(LEGISLATURE_CONFIGS[country.id]) && world.activeLegislatureCountryIds.includes(country.id);
+  const hasFocusTree = world.activeFocusTreeCountryIds.includes(country.id);
 
   const tabs: { id: DashboardTab; label: string }[] = [
     { id: 'overview', label: 'Overview' },
     { id: 'research', label: 'Research' },
     ...(hasLegislature ? [{ id: 'legislature' as const, label: 'Legislature' }] : []),
+    ...(hasFocusTree ? [{ id: 'focus' as const, label: 'National Focus' }] : []),
     { id: 'diplomacy', label: 'Diplomacy' },
   ];
   const activeTab = tabs.some((t) => t.id === tab) ? tab : 'overview';
@@ -446,6 +550,10 @@ export function CountryDashboard() {
         ) : (
           <LegislatureSummary country={country} />
         ))}
+
+      {activeTab === 'focus' && hasFocusTree && (
+        <FocusTreePanel country={country} isPlayerControlled={isPlayerCountry} />
+      )}
 
       {activeTab === 'diplomacy' &&
         (isPlayerCountry ? <DiplomacyControls playerCountryId={country.id} /> : <RelationsList country={country} />)}

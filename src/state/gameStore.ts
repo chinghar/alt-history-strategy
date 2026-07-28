@@ -9,6 +9,7 @@ import { declareWar as applyDeclareWar, suePeace as applySuePeace } from '../eng
 import { setResearchFocus as applySetResearchFocus } from '../engine/research/researchEngine';
 import { queueEspionageMission as applyQueueEspionageMission } from '../engine/espionage/espionageEngine';
 import { setBillStance as applySetBillStance } from '../engine/legislature/legislatureEngine';
+import { setNationalFocus as applySetNationalFocus } from '../engine/focus/focusEngine';
 import { templateFlavorTextProvider as flavor } from '../engine/flavor/flavorTextProvider';
 import { forceEvent as applyForceEvent, type ForceableEventType } from '../engine/sandbox/forceEvents';
 import { scenarios, DEFAULT_SCENARIO_ID } from '../data/scenarios';
@@ -45,6 +46,7 @@ interface GameStore {
   setResearchFocus: (techId: string) => void;
   orderEspionage: (otherId: CountryId, mission: SpyMission) => void;
   castVote: (stance: BillStance) => void;
+  setNationalFocus: (focusId: string) => void;
   forceEvent: (type: ForceableEventType, countryId: CountryId, secondCountryId: CountryId | null) => void;
   loadScenario: (scenarioId: string) => void;
   resetScenario: () => void;
@@ -260,6 +262,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const text = flavor.billStanceSet(applied.countries[playerCountryId].name, stance, playerActionRng(applied));
     const nextWorld = withPlayerEvent(applied, text, 'bill_stance_set', [playerCountryId], 'minor');
+    persist(nextWorld);
+    set({ world: nextWorld });
+  },
+
+  setNationalFocus: (focusId) => {
+    const { world, playerCountryId } = get();
+    if (!playerCountryId) return;
+    const nextWorld = applySetNationalFocus(world, playerCountryId, focusId);
     persist(nextWorld);
     set({ world: nextWorld });
   },
